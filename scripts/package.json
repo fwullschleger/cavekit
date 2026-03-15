@@ -1,0 +1,11 @@
+{
+  "name": "sdd-scripts",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@inquirer/prompts": "^7.0.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.0.0"
+  }
+}

@@ -158,7 +158,7 @@ last_edited: "{CURRENT_DATE_UTC}"
 - {anything that couldn't be fully specified}
 
 ### Next Step
-Run `/sdd-plan` to generate the feature frontier.
+Run `/sdd:plan` to generate the feature frontier.
 ```
 
 Present the report to the user.

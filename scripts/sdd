@@ -3,36 +3,186 @@
 # sdd — Global CLI for Spec-Driven Development
 #
 # Usage:
-#   sdd --monitor [OPTIONS]    Start tmux dashboard + claude + /sdd-execute
-#   sdd --kill                 Kill the tmux session
-#   sdd --help                 Show this help
+#   sdd --monitor [--expanded]   Interactive launcher — pick frontiers, launch in tmux
+#   sdd --status                 Show frontier progress from any terminal
+#   sdd --kill                   Kill all SDD sessions and clean up worktrees
+#   sdd --analytics              Show trends across SDD cycles
+#   sdd --help                   Show this help
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || readlink "${BASH_SOURCE[0]}")")" && pwd)"
-SESSION_NAME="sdd-loop"
-RIGHT_WIDTH_PCT=30
 
 usage() {
   cat <<'EOF'
 sdd — Spec-Driven Development CLI
 
 Usage:
-  sdd --monitor [OPTIONS]    Start tmux dashboard + claude + /sdd-execute
-  sdd --kill                 Kill the tmux session
+  sdd --monitor [--expanded]   Pick frontiers, launch parallel agents in tmux
+  sdd --status                 Show frontier progress
+  sdd --analytics              Show trends across SDD cycles
+  sdd --merge                  Guided merge of completed branches into main
+  sdd --kill                   Stop everything and clean up
 
-Monitor options (forwarded to /sdd-execute):
-  --filter <pattern>         Scope to specs/frontier matching pattern
-  --adversarial              Add Codex adversarial review
-  --max-iterations <n>       Max iterations (default: 20)
+Monitor modes:
+  Default:    All agents in one tmux window (horizontal ≤3, tiled 4+)
+  --expanded: One tmux window per agent with progress+activity dashboards
+
+In-progress frontiers can be selected to resume from existing worktrees.
 
 Examples:
-  sdd --monitor
-  sdd --monitor --adversarial
-  sdd --monitor --filter v2 --max-iterations 30
-  sdd --kill
+  sdd --monitor              Pick and launch frontiers
+  sdd --monitor --expanded   Same, with full dashboard per agent
+  sdd --status               Check progress from another terminal
+  sdd --kill                 Stop all agents, remove worktrees
 EOF
 }
+
+# ─── --status ────────────────────────────────────────────────────────────────
+
+do_status() {
+  local PROJECT_ROOT
+  PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+  local PROJECT_NAME
+  PROJECT_NAME="$(basename "$PROJECT_ROOT")"
+
+  local found=false
+
+  for wt in "${PROJECT_ROOT}/../${PROJECT_NAME}-sdd-"*; do
+    [[ -d "$wt" ]] || continue
+    found=true
+    local name
+    name=$(basename "$wt" | sed "s/^${PROJECT_NAME}-sdd-//")
+
+    # Count tasks
+    local frontier=""
+    for f in "$wt"/context/frontiers/*frontier*.md; do
+      [[ -f "$f" ]] && frontier="$f" && break
+    done
+
+    local total=0 done_count=0
+    if [[ -n "$frontier" ]]; then
+      total=$(grep -cE '^\s*\|\s*T-[0-9]+' "$frontier" 2>/dev/null || echo 0)
+    fi
+
+    # Count done from impl
+    local done_ids=""
+    for impl in "$wt"/context/impl/impl-*.md; do
+      [[ -f "$impl" ]] || continue
+      done_ids+=$(grep -iE 'T-[0-9]+.*DONE' "$impl" 2>/dev/null | grep -oE 'T-[0-9]+' || true)
+      done_ids+=$'\n'
+    done
+    done_count=$(echo "$done_ids" | sort -u | grep -c 'T-' 2>/dev/null || echo 0)
+
+    # Check loop state
+    local status_icon="·"
+    if [[ -f "$wt/.claude/ralph-loop.local.md" ]]; then
+      local iter
+      iter=$(grep -m1 '^iteration:' "$wt/.claude/ralph-loop.local.md" 2>/dev/null | awk '{print $2}' || echo "?")
+      local max_iter
+      max_iter=$(grep -m1 '^max_iterations:' "$wt/.claude/ralph-loop.local.md" 2>/dev/null | awk '{print $2}' || echo "?")
+      status_icon="⟳ iter ${iter}/${max_iter},"
+    elif [[ "$total" -gt 0 && "$done_count" -ge "$total" ]]; then
+      status_icon="✓"
+    fi
+
+    printf "  %-25s %s %s/%s tasks done\n" "$name:" "$status_icon" "$done_count" "$total"
+  done
+
+  if [[ "$found" == "false" ]]; then
+    echo "  No active SDD worktrees found."
+    echo "  Run 'sdd --monitor' to start."
+  fi
+}
+
+# ─── --kill ──────────────────────────────────────────────────────────────────
+
+do_kill() {
+  # Kill sdd tmux session
+  local KILLED=0
+  if tmux has-session -t "sdd" 2>/dev/null; then
+    tmux kill-session -t "sdd" 2>/dev/null && KILLED=$((KILLED + 1))
+  fi
+  # Also kill any legacy sdd-* sessions
+  while IFS= read -r sess; do
+    tmux kill-session -t "$sess" 2>/dev/null && KILLED=$((KILLED + 1))
+  done < <(tmux list-sessions -F '#{session_name}' 2>/dev/null | grep '^sdd-' || true)
+
+  # Clean stale ralph-loop state from main project
+  local PROJECT_ROOT
+  PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+  local PROJECT_NAME
+  PROJECT_NAME="$(basename "$PROJECT_ROOT")"
+  rm -f "$PROJECT_ROOT/.claude/ralph-loop.local.md"
+
+  # Clean ralph-loop state from worktrees before removing them
+  local CLEANED=0
+  for wt in "${PROJECT_ROOT}/../${PROJECT_NAME}-sdd-"*; do
+    [[ -d "$wt" ]] || continue
+    rm -f "$wt/.claude/ralph-loop.local.md"
+    # Prune first to handle stale worktrees
+    git worktree prune 2>/dev/null || true
+    git worktree remove "$wt" --force 2>/dev/null && CLEANED=$((CLEANED + 1))
+  done
+
+  # Clean up sdd/* branches
+  local BRANCHES=0
+  while IFS= read -r branch; do
+    [[ -z "$branch" ]] && continue
+    git branch -D "$branch" 2>/dev/null && BRANCHES=$((BRANCHES + 1))
+  done < <(git branch --list 'sdd/*' 2>/dev/null | sed 's/^[* ]*//')
+
+  echo "Killed $KILLED sessions, cleaned $CLEANED worktrees, deleted $BRANCHES branches."
+}
+
+# ─── --monitor ───────────────────────────────────────────────────────────────
+
+do_monitor() {
+  local expanded_flag=""
+  if [[ "${1:-}" == "--expanded" ]]; then
+    expanded_flag="--expanded"
+  fi
+
+  command -v tmux &>/dev/null || { echo "tmux not found. Install: brew install tmux" >&2; exit 1; }
+  command -v claude &>/dev/null || { echo "claude not found." >&2; exit 1; }
+
+  # Ensure dependencies are installed
+  if [[ ! -d "$SCRIPT_DIR/node_modules/@inquirer" ]]; then
+    echo "Installing picker dependencies..."
+    (cd "$SCRIPT_DIR" && npm install --silent) || { echo "Failed to install dependencies" >&2; exit 1; }
+  fi
+
+  # Run the picker — it writes selected paths to a temp file, interactive UI uses stdout/tty
+  local PICKER_OUT
+  PICKER_OUT=$(mktemp /tmp/sdd-picker-XXXXXX)
+  trap 'rm -f "$PICKER_OUT"' EXIT
+
+  local TSX="$SCRIPT_DIR/node_modules/.bin/tsx"
+  SDD_PICKER_OUTFILE="$PICKER_OUT" "$TSX" "$SCRIPT_DIR/sdd-picker.ts"
+  local picker_exit=$?
+
+  if [[ $picker_exit -ne 0 ]]; then
+    rm -f "$PICKER_OUT"
+    exit 0
+  fi
+
+  # Read selected paths
+  FRONTIER_ARGS=()
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && FRONTIER_ARGS+=("$line")
+  done < "$PICKER_OUT"
+  rm -f "$PICKER_OUT"
+
+  if [[ ${#FRONTIER_ARGS[@]} -eq 0 ]]; then
+    echo "No frontiers selected."
+    exit 0
+  fi
+
+  # Launch
+  exec "$SCRIPT_DIR/sdd-launch-session.sh" $expanded_flag "${FRONTIER_ARGS[@]}"
+}
+
+# ─── Main dispatch ───────────────────────────────────────────────────────────
 
 case "${1:-}" in
   --help|-h|"")
@@ -40,11 +190,25 @@ case "${1:-}" in
     exit 0
     ;;
   --kill|kill)
-    tmux kill-session -t "$SESSION_NAME" 2>/dev/null && echo "Session '$SESSION_NAME' killed." || echo "No active session."
+    do_kill
+    ;;
+  --status)
+    echo "SDD Agent Status:"
+    do_status
+    ;;
+  --analytics)
+    exec "$SCRIPT_DIR/sdd-analytics.sh"
+    ;;
+  --merge)
+    echo "Run /sdd:merge inside Claude Code to merge branches with spec-aware conflict resolution."
+    echo ""
+    echo "Branches to merge:"
+    git branch --list 'sdd/*' 2>/dev/null | sed 's/^/  /' || echo "  (none)"
     exit 0
     ;;
   --monitor)
     shift
+    do_monitor "$@"
     ;;
   *)
     echo "Unknown option: $1" >&2
@@ -52,55 +216,3 @@ case "${1:-}" in
     exit 1
     ;;
 esac
-
-# ─── Preflight ──────────────────────────────────────────────────────────────
-
-command -v tmux &>/dev/null || { echo "tmux not found. Install: brew install tmux" >&2; exit 1; }
-command -v claude &>/dev/null || { echo "claude not found. Install Claude Code first." >&2; exit 1; }
-
-if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
-  echo "Existing '$SESSION_NAME' session found. Killing it..."
-  tmux kill-session -t "$SESSION_NAME"
-fi
-
-SDD_ARGS="$*"
-WORK_DIR="$(pwd)"
-
-# ─── Terminal size ──────────────────────────────────────────────────────────
-
-if STTY_SIZE=$(stty size 2>/dev/null); then
-  ROWS=$(echo "$STTY_SIZE" | awk '{print $1}')
-  COLS=$(echo "$STTY_SIZE" | awk '{print $2}')
-else
-  COLS=${COLUMNS:-200}
-  ROWS=${LINES:-50}
-fi
-
-RIGHT_WIDTH=$(( COLS * RIGHT_WIDTH_PCT / 100 ))
-[[ "$RIGHT_WIDTH" -lt 35 ]] && RIGHT_WIDTH=35
-
-echo "Starting SDD monitor (${COLS}x${ROWS})..."
-
-# ─── Create tmux session ───────────────────────────────────────────────────
-
-tmux new-session -d -s "$SESSION_NAME" -c "$WORK_DIR" -x "$COLS" -y "$ROWS" \
-  "claude; exec bash"
-
-# Send /sdd-execute after claude starts
-(
-  sleep 2
-  tmux send-keys -t "$SESSION_NAME:0.0" "/sdd-execute $SDD_ARGS" Enter
-) &
-
-# Right panes
-tmux split-window -h -t "$SESSION_NAME" -l "$RIGHT_WIDTH" -c "$WORK_DIR" \
-  "exec bash \"$SCRIPT_DIR/dashboard-progress.sh\""
-tmux select-pane -T "sdd-progress"
-
-tmux split-window -v -t "$SESSION_NAME" -c "$WORK_DIR" \
-  "exec bash \"$SCRIPT_DIR/dashboard-activity.sh\""
-tmux select-pane -T "sdd-activity"
-
-tmux select-pane -t "$SESSION_NAME:0.0"
-
-exec tmux attach-session -t "$SESSION_NAME"

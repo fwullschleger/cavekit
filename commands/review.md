@@ -6,7 +6,7 @@ argument-hint: "[--filter PATTERN]"
 
 # SDD Review — Post-Loop Analysis
 
-Run this after `/sdd-execute` completes (or is stopped). It does two things:
+Run this after `/sdd:execute` completes (or is stopped). It does two things:
 
 1. **Gap analysis** — compares what was built against what the specs require
 2. **Adversarial review** — finds bugs, security issues, and quality problems in the code that was written
@@ -23,7 +23,7 @@ Read these files to understand what happened:
 6. **Git diff** — run `git diff main...HEAD` (or appropriate base branch) to see all code changes
 
 If no impl tracking or loop log exists, tell the user:
-> No loop artifacts found. Run `/sdd-execute` first, then `/sdd-review` after it completes.
+> No loop artifacts found. Run `/sdd:execute` first, then `/sdd:review` after it completes.
 
 ## Step 2: Gap Analysis
 
@@ -155,8 +155,8 @@ Present this to the user:
 ## Recommended Next Steps
 1. {highest priority action}
 2. {next action}
-3. {if gaps exist: run `/sdd-execute` again to address remaining work}
-4. {if spec gaps found: specs will be updated below, then `/sdd-plan` + `/sdd-execute`}
+3. {if gaps exist: run `/sdd:execute` again to address remaining work}
+4. {if spec gaps found: specs will be updated below, then `/sdd:plan` + `/sdd:execute`}
 ```
 
 ## Step 5: Back-Propagate
@@ -215,7 +215,7 @@ last_edited: "{CURRENT_DATE_UTC}"
 | F-002: {title} | P1 | {path} | NEW |
 ```
 
-These findings will be picked up by the next `/sdd-execute` loop — the execute prompt reads impl tracking and prioritizes P0 issues first.
+These findings will be picked up by the next `/sdd:execute` loop — the execute prompt reads impl tracking and prioritizes P0 issues first.
 
 ### Report What Changed
 
@@ -237,5 +237,5 @@ After back-propagation, tell the user:
 ### Findings Logged
 {n} findings written to context/impl/impl-review-findings.md
 
-Ready for next cycle: `/sdd-execute`
+Ready for next cycle: `/sdd:execute`
 ```

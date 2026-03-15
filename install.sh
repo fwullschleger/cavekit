@@ -30,8 +30,8 @@ printf "${B}Installer${R}\n\n"
 # ─── Preflight ──────────────────────────────────────────────────────────────
 
 command -v git &>/dev/null || fail "git not found."
-command -v claude &>/dev/null || warn "claude CLI not found. Install Claude Code to use /sdd-* commands."
-command -v tmux &>/dev/null || warn "tmux not found. Install for the monitor dashboard: brew install tmux"
+command -v claude &>/dev/null || warn "claude CLI not found. Install Claude Code to use /sdd:... commands."
+command -v tmux &>/dev/null || warn "tmux not found. Install for the parallel launcher: brew install tmux"
 
 # ─── Register Claude Code plugin ───────────────────────────────────────────
 
@@ -86,6 +86,9 @@ fi
 info "Installing sdd command..."
 
 chmod +x "$INSTALL_DIR/scripts/sdd"
+chmod +x "$INSTALL_DIR/scripts/sdd-launch-session.sh"
+chmod +x "$INSTALL_DIR/scripts/sdd-status-poller.sh"
+chmod +x "$INSTALL_DIR/scripts/sdd-analytics.sh"
 chmod +x "$INSTALL_DIR/scripts/dashboard-progress.sh"
 chmod +x "$INSTALL_DIR/scripts/dashboard-activity.sh"
 chmod +x "$INSTALL_DIR/scripts/setup-execute.sh"
@@ -104,14 +107,17 @@ fi
 printf "\n${B}${GR}Installed!${R}\n\n"
 
 printf "  ${B}Terminal:${R}\n"
-printf "    sdd --monitor                 Launch tmux dashboard + claude\n"
-printf "    sdd --monitor --adversarial   With Codex review\n"
-printf "    sdd --kill                    Kill the session\n"
+printf "    sdd --monitor                 Pick frontiers and launch agents\n"
+printf "    sdd --monitor --expanded      One tmux window per frontier\n"
+printf "    sdd --status                  Show frontier progress\n"
+printf "    sdd --analytics               Show loop trends\n"
+printf "    sdd --kill                    Stop sessions and clean worktrees\n"
 printf "\n"
 printf "  ${B}Claude:${R}\n"
-printf "    /sdd-brainstorm               Write specs\n"
-printf "    /sdd-plan                     Generate frontier\n"
-printf "    /sdd-execute                  Run the build loop\n"
-printf "    /sdd-review                   Post-loop review\n"
+printf "    /sdd:brainstorm               Write specs\n"
+printf "    /sdd:plan                     Generate frontier\n"
+printf "    /sdd:execute                  Run the build loop\n"
+printf "    /sdd:review                   Post-loop review\n"
+printf "    /sdd:merge                    Merge completed SDD branches\n"
 printf "\n"
 printf "  Restart Claude Code to load the plugin.\n\n"

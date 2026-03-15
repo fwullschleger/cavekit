@@ -12,7 +12,7 @@ Show the user a progress report by comparing the feature frontier against implem
 
 Look in `context/frontiers/` then `context/plans/` for `*frontier*` files. If `--filter` is set (parse from `$ARGUMENTS`), match against it.
 
-If no frontier found: "No frontier found. Run `/sdd-plan` first."
+If no frontier found: "No frontier found. Run `/sdd:plan` first."
 
 ## Step 2: Read State
 

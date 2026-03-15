@@ -78,6 +78,48 @@ HELP_EOF
   esac
 done
 
+# ─── Create worktree if not already in one ──────────────────────────────────
+
+PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+PROJECT_NAME="$(basename "$PROJECT_ROOT")"
+
+# Detect if we're already in a worktree (sdd --monitor creates these)
+IS_WORKTREE=false
+GIT_COMMON_DIR="$(git rev-parse --git-common-dir 2>/dev/null || true)"
+GIT_DIR="$(git rev-parse --git-dir 2>/dev/null || true)"
+if [[ -n "$GIT_COMMON_DIR" && -n "$GIT_DIR" && "$GIT_COMMON_DIR" != "$GIT_DIR" ]]; then
+  IS_WORKTREE=true
+fi
+
+if [[ "$IS_WORKTREE" == "false" ]]; then
+  # Clean any stale ralph-loop state from the main project dir
+  # This prevents the stop hook from hijacking non-SDD conversations
+  rm -f "$PROJECT_ROOT/.claude/ralph-loop.local.md"
+
+  # Derive worktree name from filter or frontier
+  WT_NAME="${FILTER:-execute}"
+  WT_PATH="${PROJECT_ROOT}/../${PROJECT_NAME}-sdd-${WT_NAME}"
+  BRANCH_NAME="sdd/${WT_NAME}"
+
+  if [[ -d "$WT_PATH" ]]; then
+    echo "📂 Using existing worktree: $WT_PATH"
+  else
+    # Create branch if needed
+    if ! git rev-parse --verify "$BRANCH_NAME" &>/dev/null; then
+      git branch "$BRANCH_NAME" HEAD 2>/dev/null || true
+    fi
+    git worktree add "$WT_PATH" "$BRANCH_NAME" 2>/dev/null || {
+      git worktree add --force "$WT_PATH" "$BRANCH_NAME" 2>/dev/null || true
+    }
+    echo "📂 Created worktree: $WT_PATH (branch: $BRANCH_NAME)"
+  fi
+
+  # Switch to the worktree
+  cd "$WT_PATH"
+  echo "📂 Working in: $(pwd)"
+  echo "SDD_WORKTREE_PATH=$WT_PATH"
+fi
+
 # ─── Find frontier ──────────────────────────────────────────────────────────
 
 FRONTIER_FILE=""
@@ -311,7 +353,7 @@ cat > .claude/ralph-loop.local.md <<EOF
 ---
 active: true
 iteration: 1
-session_id: ${CLAUDE_CODE_SESSION_ID:-}
+session_id: ${CLAUDE_CODE_SESSION_ID:-$(python3 -c "import uuid; print(uuid.uuid4())" 2>/dev/null || echo "sdd-$$-$(date +%s)")}
 max_iterations: $MAX_ITERATIONS
 completion_promise: "$COMPLETION_PROMISE"
 started_at: "$(date -u +%Y-%m-%dT%H:%M:%SZ)"

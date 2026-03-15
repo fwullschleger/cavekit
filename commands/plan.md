@@ -13,7 +13,7 @@ No domain plans. No file ownership. No time budgets. Just: tasks, what spec requ
 ## Step 1: Validate Specs Exist
 
 Check `context/specs/` for spec files. If none found, tell the user:
-> No specs found. Run `/sdd-brainstorm` first.
+> No specs found. Run `/sdd:brainstorm` first.
 
 If `--filter` is set, only include specs matching the filter pattern.
 
@@ -109,8 +109,8 @@ If a frontier already exists, ask the user whether to overwrite or keep the exis
 ### Tier 0 Tasks: {count} (can start immediately)
 
 ### Next Step
-Run `/sdd-execute` to start the implementation loop.
-Run `/sdd-execute --adversarial` to add Codex review.
+Run `/sdd:execute` to start the implementation loop.
+Run `/sdd:execute --adversarial` to add Codex review.
 ```
 
 ### Rules
