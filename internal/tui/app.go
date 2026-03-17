@@ -67,6 +67,9 @@ type App struct {
 	diffTab     *DiffTab
 	terminalTab *TerminalTab
 
+	// Pending confirmation action (to distinguish kill vs push)
+	pendingAction KeyAction
+
 	// Data
 	instances []*session.Instance
 
@@ -162,6 +165,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			a.overlay.Show(OverlayTextInput, "New Instance", "Enter frontier name:")
 		case ActionKill:
 			if sel := a.instanceList.Selected(); sel != nil {
+				a.pendingAction = ActionKill
 				a.overlay.Show(OverlayConfirmation, "Kill Instance", "Kill '"+sel.Title+"'?")
 			}
 		case ActionTextInput:
@@ -186,8 +190,15 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case OverlayConfirmation:
 				if sel := a.instanceList.Selected(); sel != nil {
 					a.overlay.Hide()
-					a.sessionMgr.Kill(context.Background(), sel, a.projectRoot, true)
-					a.removeInstance(sel)
+					switch a.pendingAction {
+					case ActionKill:
+						a.sessionMgr.Kill(context.Background(), sel, a.projectRoot, true)
+						a.removeInstance(sel)
+					case ActionPush:
+						wtMgr := worktree.NewManager(exec.NewRealExecutor())
+						wtMgr.Push(context.Background(), sel.WorktreePath, "Blueprint: push from monitor")
+					}
+					a.pendingAction = ActionNone
 				}
 			}
 		case ActionConfirmNo:
@@ -198,7 +209,20 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case ActionPush:
 			if sel := a.instanceList.Selected(); sel != nil && sel.WorktreePath != "" {
+				a.pendingAction = ActionPush
 				a.overlay.Show(OverlayConfirmation, "Push Branch", "Push '"+sel.Title+"' branch to remote?")
+			}
+		case ActionCheckout:
+			if sel := a.instanceList.Selected(); sel != nil && sel.WorktreePath != "" {
+				// Open a shell in the worktree via terminal tab
+				a.terminalTab.EnsureSession(context.Background(), sel.Title, sel.WorktreePath)
+				a.activeTab = TabTerminal
+				a.tabContent.SetActiveTab(TabTerminal)
+			}
+		case ActionResume:
+			if sel := a.instanceList.Selected(); sel != nil && sel.Status == session.StatusPaused {
+				a.sessionMgr.Resume(context.Background(), sel)
+				a.instanceList.SetInstances(a.instances)
 			}
 		case ActionScrollUp:
 			a.diffTab.ScrollUp(3)

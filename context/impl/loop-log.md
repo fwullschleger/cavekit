@@ -14,3 +14,11 @@
 - **Files:** internal/tui/app.go (attachCmd, attachFinishedMsg, ActionOpen handler)
 - **Validation:** Build P, Tests P, Acceptance: Enter attaches to tmux P, tea.ExecProcess suspends TUI P, resume on detach P
 - **Next:** T-046 — Handle ActionPush
+
+### Iteration 3 — 2026-03-17
+- **Task:** T-046 — Handle ActionPush + T-047 — Handle ActionCheckout/ActionResume
+- **Tier:** 6
+- **Status:** DONE
+- **Files:** internal/tui/app.go (pendingAction field, ActionPush/Checkout/Resume handlers, push dispatch in ActionConfirmYes)
+- **Validation:** Build P, Tests P, Acceptance: push with confirmation P, checkout switches to terminal tab P, resume calls sessionMgr.Resume P
+- **Next:** T-049 — Integrate FrontierPicker into new-instance flow
