@@ -142,3 +142,11 @@
 - **Validation:** Build P, Tests 2/2 P, Acceptance 5/5
 - **Note:** Limited unit testing due to PTY requirements; acceptance verified via code review of spec criteria
 - **Next:** Tier 2 tasks — starting with highest-value unblocked tasks
+
+### Iteration 19 — 2026-03-17
+- **Task:** T-020 — Session lifecycle (create, start with worktree+tmux)
+- **Tier:** 2
+- **Status:** DONE
+- **Files:** internal/session/lifecycle.go, internal/session/lifecycle_test.go
+- **Validation:** Build P, Tests 4/4 P, Acceptance 5/5
+- **Next:** T-021 — Session persistence (save/load JSON)
