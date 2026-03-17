@@ -45,3 +45,11 @@
 - **Files:** internal/worktree/worktree.go, internal/worktree/worktree_test.go
 - **Validation:** Build P, Tests 6/6 P, Acceptance 5/5
 - **Next:** T-005 — Frontier file discovery and name derivation
+
+### Iteration 7 — 2026-03-17
+- **Task:** T-005 — Frontier file discovery and name derivation
+- **Tier:** 0
+- **Status:** DONE
+- **Files:** internal/frontier/discovery.go, internal/frontier/discovery_test.go
+- **Validation:** Build P, Tests 4/4 P, Acceptance 5/5
+- **Next:** T-006 — Frontier markdown parsing
