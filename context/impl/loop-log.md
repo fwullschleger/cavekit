@@ -109,3 +109,11 @@
 - **Files:** internal/frontier/status.go, internal/frontier/status_test.go
 - **Validation:** Build P, Tests 5/5 P, Acceptance 4/4
 - **Next:** T-017 — Progress summary string generation
+
+### Iteration 15 — 2026-03-17
+- **Task:** T-017 — Progress summary string generation
+- **Tier:** 1
+- **Status:** DONE
+- **Files:** internal/frontier/progress.go, internal/frontier/progress_test.go
+- **Validation:** Build P, Tests 4/4 P, Acceptance 3/3
+- **Next:** T-016 — Frontier multi-candidate ranking and selection

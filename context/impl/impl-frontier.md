@@ -10,3 +10,4 @@ last_edited: "2026-03-17T00:00:00Z"
 | T-006 | DONE | Frontier markdown parsing: task IDs, tier structure, table rows with blockedBy/effort. internal/frontier/parser.go. |
 | T-014 | DONE | Task status tracking from impl-*.md files with word boundary matching. ComputeProgress for aggregates. internal/frontier/tracking.go. |
 | T-015 | DONE | Frontier status classification: done/in-progress/available with Ralph Loop detection. internal/frontier/status.go. |
+| T-017 | DONE | Progress summary string: "{icon} {name} {done}/{total} [{currentTask}]". internal/frontier/progress.go. |
