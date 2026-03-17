@@ -29,3 +29,11 @@
 - **Files:** internal/tmux/session.go, internal/tmux/session_test.go
 - **Validation:** Build P, Tests 6/6 P, Acceptance 6/6
 - **Next:** T-003 — Tmux pane content capture
+
+### Iteration 5 — 2026-03-17
+- **Task:** T-003 — Tmux pane content capture
+- **Tier:** 0
+- **Status:** DONE
+- **Files:** internal/tmux/capture.go, internal/tmux/capture_test.go
+- **Validation:** Build P, Tests 9/9 P, Acceptance 3/3
+- **Next:** T-004 — Git worktree create/detect/remove
