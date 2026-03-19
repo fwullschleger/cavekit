@@ -30,22 +30,30 @@ The server watches a directory for HTML files and serves the newest one to the b
 
 ## Starting a Session
 
-Use the superpowers visual companion server if available:
+The visual companion server lives in `scripts/visual-companion/`. It's a zero-dependency Node.js server that watches a directory for HTML files and serves them with WebSocket live-reload.
 
 ```bash
-# Start with project persistence
-scripts/start-server.sh --project-dir $(pwd)
+# Start with project persistence (mockups saved to .blueprint/companion/)
+scripts/visual-companion/start-server.sh --project-dir $(pwd)
+
+# Returns JSON: {"type":"server-started","port":52341,"url":"http://localhost:52341","screen_dir":"/path/to/.blueprint/companion/12345-1706000000"}
 ```
 
-Save `screen_dir` from the response. Tell user to open the URL.
+Save `screen_dir` from the response. Tell the user to open the URL.
 
-If the visual companion server is not available, fall back to generating standalone HTML files that the user can open directly:
+**Finding connection info:** The server writes startup JSON to `$SCREEN_DIR/.server-info`. If you launched in the background, read that file to get the URL and port.
 
+**Platform notes:**
+- **macOS/Linux:** Default mode works — the script backgrounds the server itself
+- **Windows/Git Bash:** Auto-detects and uses foreground mode. Set `run_in_background: true` on the Bash tool call
+- **Codex:** Auto-detects `CODEX_CI` and switches to foreground mode
+
+**Stopping:**
 ```bash
-# Fallback: write HTML to a temp file and tell user to open it
-# Write to .blueprint/brainstorm/ for persistence
-mkdir -p .blueprint/brainstorm
+scripts/visual-companion/stop-server.sh $SCREEN_DIR
 ```
+
+Persistent directories (`.blueprint/companion/`) are kept for later reference. Only `/tmp` sessions get cleaned up.
 
 ## The Loop
 
