@@ -52,3 +52,4 @@ Creating and managing git worktrees for isolated agent execution. Each agent get
 ## Cross-References
 - See also: blueprint-session.md (creates worktrees per session)
 - See also: blueprint-site.md (site name drives worktree naming)
+- See also: blueprint-build-lifecycle.md (builds on worktree primitives for lifecycle management)

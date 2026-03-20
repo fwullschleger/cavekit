@@ -84,3 +84,4 @@ The following requirements were added after tracing manual bug fixes back to spe
 ## Cross-References
 - See also: blueprint-session.md (sessions are tied to sites)
 - See also: blueprint-tui.md (TUI displays site progress)
+- See also: blueprint-spec-sync.md (drift detection reads task-to-requirement mappings)

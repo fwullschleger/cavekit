@@ -73,3 +73,4 @@ The session (or "instance") model that ties together a tmux session, git worktre
 - See also: blueprint-worktree.md (worktree creation)
 - See also: blueprint-site.md (progress tracking)
 - See also: blueprint-tui.md (displays and controls instances)
+- See also: blueprint-build-lifecycle.md (instance lifecycle triggers build lifecycle operations)
