@@ -114,7 +114,7 @@ Every requirement has acceptance criteria.
 ## Install
 
 ```bash
-git clone https://github.com/JuliusBrussee/sdd-os.git ~/.blueprint
+git clone https://github.com/JuliusBrussee/blueprint.git ~/.blueprint
 cd ~/.blueprint && ./install.sh
 ```
 
