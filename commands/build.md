@@ -88,7 +88,11 @@ Once the setup script completes (outputs the ralph prompt), you run the executio
    Dispatch all packets for the wave in a single message with multiple Agent tool calls.
 
 5. **After wave completes**:
-   - For parallel waves: merge each subagent's branch into current branch (`git merge <branch> --no-edit`), then delete it (`git branch -D <branch>`). Skip if subagent reported no changes.
+   - For parallel waves, merge and clean up each subagent **one at a time**:
+     1. `git merge <branch> --no-edit` — merge the subagent's branch
+     2. `git worktree remove <worktree-path>` — remove the worktree directory (required before branch can be deleted)
+     3. `git branch -D <branch>` — delete the branch
+     Skip all three steps if the subagent reported no changes (Claude Code auto-cleans worktrees with no changes). If a merge conflicts, clean up the worktree (`git worktree remove <worktree-path> --force`) before reporting the conflict.
    - Update `context/impl/impl-*.md` with status for each completed task
    - Record any dead ends in `context/impl/dead-ends.md`
 
@@ -169,7 +173,7 @@ Then output the completion promise from the ralph prompt.
 ## Circuit Breakers
 
 - **3 consecutive test failures on same task** → mark BLOCKED, document in dead-ends.md, skip
-- **Merge conflict unresolvable** → stop the wave, report which branches conflict
+- **Merge conflict unresolvable** → clean up remaining worktrees (`git worktree remove <path> --force` for each), stop the wave, report which branches conflict
 - **All remaining tasks blocked** → report the dependency chain and stop
 
 ## Critical Rules

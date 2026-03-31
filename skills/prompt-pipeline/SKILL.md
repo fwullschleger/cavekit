@@ -178,7 +178,7 @@ Agent Team Structure:
       Dispatch: Agent tool with isolation: "worktree"
 ```
 
-**Why:** Agents need to understand their role and what they own. Dispatch subagents with `isolation: "worktree"` via the Agent tool -- Claude Code handles worktree creation and cleanup transparently.
+**Why:** Agents need to understand their role and what they own. Dispatch subagents with `isolation: "worktree"` via the Agent tool for filesystem isolation. After merging a subagent's branch, the caller must clean up: `git worktree remove <path>` then `git branch -D <branch>`. Claude Code only auto-cleans worktrees when agents make no changes.
 
 ### 4.3 Batching Rules
 

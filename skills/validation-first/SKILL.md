@@ -313,7 +313,7 @@ Merging all agent branches simultaneously and then running tests makes it imposs
 1. **Merge one agent branch at a time** — never batch-merge
 2. **Run Gates 1-3 after each merge** — build, unit tests, integration tests
 3. **Run Gate 5 after all merges** — launch verification on the fully integrated codebase
-4. **Clean up branches** after successful merge (Claude Code handles worktree cleanup automatically)
+4. **Clean up after each merge**: remove the worktree (`git worktree remove <path>`), then delete the branch (`git branch -D <branch>`). Claude Code only auto-cleans worktrees when agents make no changes; when changes are committed, the caller must remove the worktree before deleting the branch.
 5. **If a merge fails validation,** fix it before proceeding to the next merge
 
 ---
