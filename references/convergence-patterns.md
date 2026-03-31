@@ -236,7 +236,7 @@ R1: Order placement
 1. Review file ownership tables — confirm no file is written by more than one agent
 2. Audit blueprints for contradictions — reconcile any conflicting requirements
 3. Verify task ordering — ensure dependencies flow in one direction
-4. When running agent teams, isolate each teammate in its own worktree
+4. When running agent teams, dispatch subagents with `isolation: "worktree"` via the Agent tool
 
 ### Cause 4: Unresolved External Dependencies
 

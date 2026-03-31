@@ -464,7 +464,7 @@ For each teammate's work (merge one at a time):
 4. Run Gate 3: Integration/E2E tests
    - If FAIL: fix, retest, re-verify
 5. Verify the merged feature works as expected
-6. Clean up worktree and branch
+6. Clean up branch
 7. ONLY proceed to next teammate after ALL gates pass
 ```
 

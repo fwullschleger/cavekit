@@ -1,6 +1,6 @@
 # Agent Team Patterns Reference
 
-Coordination patterns for multi-agent development. Covers team structure, batching, delegation, worktree isolation, file ownership, merge protocol, and shutdown procedures.
+Coordination patterns for multi-agent development. Covers team structure, batching, delegation, file ownership, merge protocol, and shutdown procedures.
 
 ---
 
@@ -101,13 +101,12 @@ Work is divided into batches. Each batch goes through a complete lifecycle.
    - Lead prepares spawn prompts
 
 2. SPAWN
-   - Lead creates worktrees for each teammate
+   - Lead dispatches teammates as subagents with `isolation: "worktree"` via the Agent tool
    - Lead spawns teammates with complete context
    - Maximum 3 teammates per batch
 
 3. EXECUTE
-   - Teammates work in parallel
-   - Each teammate works only in their worktree
+   - Teammates work in parallel in their isolated environments
    - Each teammate modifies only files they own
    - Teammates commit frequently
    - Teammates update implementation tracking
@@ -124,7 +123,7 @@ Work is divided into batches. Each batch goes through a complete lifecycle.
    - Lead merges one teammate at a time
    - After each merge: build -> test -> verify
    - Fix any issues before merging next teammate
-   - Clean up worktrees and branches
+   - Clean up branches
 
 7. TRANSITION
    - Lead assesses remaining work
@@ -142,51 +141,17 @@ Teammates must be shut down between batches because:
 
 ---
 
-## 5. Worktree Isolation
+## 5. Agent Isolation
 
-Every teammate works in an isolated git worktree. This prevents file conflicts entirely at the filesystem level.
+Every teammate runs in an isolated environment. When dispatching subagents via the Agent tool, use `isolation: "worktree"` to get Claude Code's built-in transparent worktree isolation. This prevents file conflicts entirely at the filesystem level without any manual worktree management.
 
-### Worktree Creation
+### Rules for Teammates
 
-```bash
-# Lead creates worktree for each teammate
-git worktree add ./worktrees/{teammate-name} -b feat/impl/{teammate-name}
-```
-
-### Worktree Layout
-
-```
-project-root/
-+-- src/                    # Main branch (lead's view)
-+-- context/
-+-- worktrees/
-    +-- auth/               # Teammate A's isolated copy
-    |   +-- src/
-    |   +-- context/
-    +-- api/                # Teammate B's isolated copy
-    |   +-- src/
-    |   +-- context/
-    +-- ui/                 # Teammate C's isolated copy
-        +-- src/
-        +-- context/
-```
-
-### Rules for Teammates in Worktrees
-
-1. Work ONLY within your assigned worktree directory
-2. Do NOT access other teammates' worktrees
+1. Work ONLY within your assigned files
+2. Do NOT access other teammates' files
 3. Commit to your branch frequently
 4. Do NOT push to remote
 5. Do NOT merge your branch into main
-6. Read specs/plans from the worktree copy (they are shared via git)
-
-### Worktree Cleanup
-
-```bash
-# After merging teammate's work
-git worktree remove ./worktrees/{teammate-name}
-git branch -d feat/impl/{teammate-name}
-```
 
 ---
 
@@ -259,7 +224,6 @@ Process each teammate sequentially, ordered by dependency depth (foundations fir
    Cross-check against implementation tracking
 
 5. TEARDOWN
-   git worktree remove ./worktrees/{teammate-name}
    git branch -d feat/impl/{teammate-name}
 
 6. ADVANCE
@@ -288,7 +252,6 @@ If a merge conflict occurs:
 - [ ] `{TEST_COMMAND}` passes with zero failures
 - [ ] No regressions in previously passing tests
 - [ ] Implementation tracking updated with merge results
-- [ ] Worktree removed
 - [ ] Branch deleted
 ```
 
@@ -420,61 +383,15 @@ Batch 4 (Polish): Performance, edge cases, documentation
 **Prevention:** Explicit time guards in spawn prompt.
 **Recovery:** Lead sends stop signal, re-assigns task.
 
-### Stale Worktree After Merge
+### Stale Isolation After Merge
 
 **Symptom:** Teammate continues working with outdated code.
-**Prevention:** Shutdown between batches, clean worktree creation.
-**Recovery:** Shut down stale teammate, create fresh worktree.
+**Prevention:** Shutdown between batches, fresh subagent dispatch.
+**Recovery:** Shut down stale teammate, dispatch a fresh subagent.
 
 ---
 
-## 12. Worktree Commands Reference
-
-### Create Worktree
-
-```bash
-git worktree add ./worktrees/{name} -b feat/impl/{name}
-```
-
-### List Worktrees
-
-```bash
-git worktree list
-```
-
-### Remove Worktree
-
-```bash
-git worktree remove ./worktrees/{name}
-```
-
-### Force Remove (if locked)
-
-```bash
-git worktree remove --force ./worktrees/{name}
-```
-
-### Clean Up Branches
-
-```bash
-# Delete merged branch
-git branch -d feat/impl/{name}
-
-# Force delete unmerged branch (use with caution)
-git branch -D feat/impl/{name}
-```
-
-### Verify Clean State
-
-```bash
-# After all merges and cleanup
-git worktree list          # Should show only main worktree
-git branch --list 'feat/*' # Should show no remaining feature branches
-```
-
----
-
-## 13. Integration with Iteration Loops
+## 12. Integration with Iteration Loops
 
 Agent teams can be used within iteration loops. Each iteration of the loop:
 

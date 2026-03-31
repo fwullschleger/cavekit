@@ -1,0 +1,165 @@
+---
+name: bp-quick
+description: "Quick end-to-end: describe a feature, get it built — draft, architect, build, and inspect without stopping"
+argument-hint: "<feature description> [--skip-inspect] [--peer-review] [--max-iterations N]"
+allowed-tools: ["Bash(${CLAUDE_PLUGIN_ROOT}/scripts/setup-build.sh:*)", "Bash(git *)"]
+---
+
+# Blueprint Quick — End-to-End Feature Build
+
+Run the full Blueprint pipeline (draft → architect → build → inspect) from a single feature description with no stops for user input. Draft and architect phases are streamlined — no interactive design conversation, no user gates between phases.
+
+**When to use:** Small-to-medium features where you trust the agent's decomposition. For large or ambiguous projects, use `/bp:draft` interactively instead.
+
+## Parse Arguments
+
+Extract from `$ARGUMENTS`:
+- **Feature description** — everything that isn't a flag (required)
+- `--skip-inspect` — skip the inspect phase after build
+- `--peer-review` — pass through to build phase
+- `--max-iterations N` — pass through to build phase
+
+If no feature description is provided:
+> Usage: `/bp:quick <describe what you want built>`
+>
+> Example: `/bp:quick add a REST API for user profiles with CRUD operations and JWT auth`
+
+Stop and wait for user input.
+
+---
+
+## Phase 1: Quick Draft
+
+Streamlined version of `/bp:draft` — no interactive Q&A, no approach proposals, no incremental presentation.
+
+### 1a: Ensure Directories
+
+Create if missing: `context/blueprints/`, `context/sites/`, `context/impl/`, `context/impl/archive/`, `context/refs/`
+
+### 1b: Explore Context
+
+Silently gather context (do NOT present findings to user):
+1. Check for existing blueprints in `context/blueprints/`
+2. Read README, CLAUDE.md if present
+3. Scan codebase structure (directory layout, key files, package.json/Cargo.toml/etc.)
+4. Check recent git commits (`git log --oneline -10`)
+
+### 1c: Decompose and Write Blueprints
+
+Using the feature description + project context, directly:
+
+1. **Decompose** into domains (prefer fewer — 1 domain is fine for small features)
+2. **Write** `context/blueprints/blueprint-{domain}.md` files following the standard format:
+   - YAML frontmatter with `created` and `last_edited`
+   - R-numbered requirements with testable acceptance criteria
+   - Out of Scope section
+   - Cross-references if multiple domains
+3. **Write** `context/blueprints/blueprint-overview.md`
+
+**Quick Draft Rules:**
+- YAGNI — only what the user described, nothing extra
+- Prefer 1-2 domains over many — keep it tight
+- Acceptance criteria must be testable but don't over-specify
+- Skip the visual companion, skip approach proposals
+- Skip the blueprint-reviewer subagent loop — you validate inline
+- Do a single self-check: no TODOs, no placeholders, no implementation details in requirements
+
+### 1d: Report (brief)
+
+```
+--- Quick Draft ---
+Domains: {count}
+Requirements: {count}
+Files: {list}
+```
+
+Proceed immediately — no user gate.
+
+---
+
+## Phase 2: Quick Architect
+
+Streamlined version of `/bp:architect` — runs inline, no stopping.
+
+### 2a: Read Blueprints
+
+Read all blueprint files just written.
+
+### 2b: Generate Build Site
+
+1. Decompose requirements into T-numbered tasks
+2. Organize into dependency tiers
+3. Write `context/sites/build-site.md` with the standard format (tier tables + Mermaid graph)
+
+**Quick Architect Rules:**
+- Tasks should be M-sized, not XL
+- Every requirement maps to at least one task
+- Dependencies must be genuine blockers
+- Skip asking user about existing sites — overwrite if one exists
+
+### 2c: Report (brief)
+
+```
+--- Quick Architect ---
+Tasks: {count}
+Tiers: {count}
+Tier 0 (parallel start): {count} tasks
+```
+
+Proceed immediately — no user gate.
+
+---
+
+## Phase 3: Build
+
+Run the **full build phase** exactly as `/bp:build` defines it. This is NOT simplified — the build loop runs with all its rigor:
+
+1. Execute `"${CLAUDE_PLUGIN_ROOT}/scripts/setup-build.sh"` with any passthrough flags (`--peer-review`, `--max-iterations`)
+2. Run the execution loop: compute frontier → dispatch tasks → merge → track → repeat
+3. Follow all circuit breakers (3 consecutive failures = BLOCKED, merge conflicts = stop)
+4. All critical rules apply: form coherent work packets, delegate only the packets that benefit from parallel execution, merge after every wave
+
+The build phase is where quality matters — no shortcuts here.
+
+---
+
+## Phase 4: Inspect (unless `--skip-inspect`)
+
+If `--skip-inspect` was NOT passed, run the **full inspect phase** exactly as `/bp:inspect` defines it:
+
+1. Gather context (site, blueprints, impl tracking, git history, git diff)
+2. Gap analysis — verify every requirement against actual code
+3. Peer review — find bugs, security issues, quality problems
+4. Generate the full inspect report with verdict (APPROVE / REVISE / REJECT)
+5. Auto-revise blueprints and site if gaps found
+
+---
+
+## Final Report
+
+After all phases complete, present:
+
+```markdown
+# Blueprint Quick — Complete
+
+**Feature:** {original description}
+
+## Pipeline Summary
+| Phase | Status | Details |
+|-------|--------|---------|
+| Draft | Done | {n} domains, {n} requirements |
+| Architect | Done | {n} tasks, {n} tiers |
+| Build | Done | {n} waves, {n}/{n} tasks completed |
+| Inspect | {Done/Skipped} | {verdict or "skipped"} |
+
+## What Was Built
+{2-3 sentence summary of what was implemented}
+
+## Files Changed
+{list key files created/modified}
+
+## {If inspect ran and verdict is REVISE or REJECT}
+### Remaining Work
+{summary of gaps or findings}
+Run `/bp:build` to address remaining tasks, or `/bp:inspect` for details.
+```

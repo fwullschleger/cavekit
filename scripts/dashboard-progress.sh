@@ -91,28 +91,10 @@ render() {
   fi
   emit ""
 
-  # ── Find frontier (prefer active/incomplete over done) ──
+  # ── Find frontier ──
   local frontier=""
   if [[ -d "context/sites" ]]; then
-    # First: look for a frontier with an active worktree
-    local project_name
-    project_name="$(basename "$root")"
-    for f in $(find "context/sites" -maxdepth 1 \( -name "*site*.md" -o -name "*site*.md" \) -type f 2>/dev/null | sort); do
-      [[ "$f" == *"/archive/"* ]] && continue
-      local bn wt_name wt_path
-      bn="$(basename "$f" .md)"
-      wt_name=$(echo "$bn" | sed -E 's/^(plan-|feature-frontier-|feature-|build-site-)//' | sed -E 's/-?frontier-?//' | sed -E 's/^-|-$//g')
-      [[ -z "$wt_name" ]] && wt_name="build"
-      wt_path="${root}/../${project_name}-blueprint-${wt_name}"
-      if [[ -d "$wt_path" && -f "$wt_path/.claude/ralph-loop.local.md" ]]; then
-        frontier="$f"
-        break
-      fi
-    done
-    # Fallback: first non-archived frontier
-    if [[ -z "$frontier" ]]; then
-      frontier=$(find "context/sites" -maxdepth 1 \( -name "*site*.md" -o -name "*site*.md" \) -type f 2>/dev/null | grep -v '/archive/' | sort | head -1)
-    fi
+    frontier=$(find "context/sites" -maxdepth 1 \( -name "*site*.md" -o -name "*site*.md" \) -type f 2>/dev/null | grep -v '/archive/' | sort | head -1)
   fi
 
   if [[ -z "$frontier" ]]; then

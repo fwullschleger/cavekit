@@ -1,6 +1,6 @@
 # Git as Agent Working Memory Reference
 
-How git serves as persistent working memory for AI agents across iteration loops. Covers the feature table, commit patterns, iteration start patterns, and branch/worktree strategies.
+How git serves as persistent working memory for AI agents across iteration loops. Covers the feature table, commit patterns, iteration start patterns, and branch strategies.
 
 ---
 
@@ -24,7 +24,7 @@ How each git feature serves the agent:
 | **Commit history** (`git log`) | Understand what was done in prior iterations | Start of each iteration |
 | **Diff** (`git diff`) | See what changed since last commit | During work, before commits |
 | **Branches** | Isolate experimental work | When trying uncertain approaches |
-| **Worktrees** | Parallel agent isolation | During agent team work |
+| **Agent tool isolation** | Parallel agent isolation via `isolation: "worktree"` | During agent team work |
 | **Status** (`git status`) | Check what is modified/untracked | Start of each iteration, before commits |
 | **Stash** (`git stash`) | Temporarily set aside work | When switching between tasks |
 | **Tags** | Mark significant milestones | End of successful iteration runs |
@@ -198,60 +198,7 @@ This prevents future iterations from wasting time on the same failed approach.
 
 ---
 
-## 6. Worktrees for Parallel Isolation
-
-Git worktrees create completely isolated working copies, each with their own working directory but sharing the same git repository.
-
-### When to Use Worktrees
-
-| Scenario | Use Worktree |
-|----------|-------------|
-| Agent team with multiple teammates | Yes, one per teammate |
-| Single agent, single task | No |
-| Single agent, multiple independent tasks | Maybe, if tasks touch different files |
-| Experimentation alongside main work | Yes, keeps main clean |
-
-### Worktree Lifecycle
-
-```bash
-# 1. Create worktree
-git worktree add ./worktrees/{name} -b feat/impl/{name}
-
-# 2. Work in the worktree
-cd ./worktrees/{name}
-# ... implement ...
-git add .
-git commit -m "feat: implement {feature}"
-
-# 3. Merge back to main
-cd /project-root
-git checkout main
-git merge feat/impl/{name} --no-ff
-
-# 4. Validate
-{BUILD_COMMAND}
-{TEST_COMMAND}
-
-# 5. Clean up
-git worktree remove ./worktrees/{name}
-git branch -d feat/impl/{name}
-```
-
-### Worktree Isolation Properties
-
-| Property | Behavior |
-|----------|----------|
-| Working directory | Completely separate per worktree |
-| Staged changes | Separate per worktree |
-| Branch | Each worktree is on its own branch |
-| Commits | Committed to the worktree's branch |
-| Git objects | Shared (same .git repository) |
-| Refs | Shared (branches visible across worktrees) |
-| Hooks | Shared |
-
----
-
-## 7. Git State as Context for Agents
+## 6. Git State as Context for Agents
 
 ### What to Include in Prompts
 
@@ -279,7 +226,7 @@ and proceed with implementation.
 
 ---
 
-## 8. Git Patterns for Specific Scenarios
+## 7. Git Patterns for Specific Scenarios
 
 ### Rolling Back a Failed Change
 
@@ -330,7 +277,7 @@ git diff main...feat/impl/{name} --stat
 
 ---
 
-## 9. Progress Tracking via Git
+## 8. Progress Tracking via Git
 
 Git history provides natural progress tracking:
 
@@ -376,14 +323,11 @@ git show {commit-hash} -p
 
 ---
 
-## 10. Git Configuration for SDD Projects
+## 9. Git Configuration for SDD Projects
 
 ### Recommended .gitignore Additions
 
 ```gitignore
-# Worktrees directory (each worktree has its own .git link)
-worktrees/
-
 # Agent session artifacts
 .claude/
 
@@ -406,7 +350,7 @@ node_modules/
 
 ---
 
-## 11. Summary
+## 10. Summary
 
 Git serves as the complete working memory system for AI agents in SDD:
 
@@ -414,7 +358,7 @@ Git serves as the complete working memory system for AI agents in SDD:
 2. **Commit messages are memory** -- they explain what was done and why
 3. **Diffs show changes** -- agents understand what happened by reading diffs
 4. **Branches isolate experiments** -- failed approaches can be cleanly abandoned
-5. **Worktrees isolate agents** -- parallel work without file conflicts
+5. **Agent tool isolation** -- dispatch subagents with `isolation: "worktree"` for parallel work without file conflicts
 6. **Status shows current state** -- agents know what is in progress
 7. **History supports revision** -- tracing bugs back to their source
 

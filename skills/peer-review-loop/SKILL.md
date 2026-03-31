@@ -2,15 +2,17 @@
 name: peer-review-loop
 description: >
   Peer Review Ralph Loop — combines Blueprint blueprints with a Ralph Loop and true cross-model peer review
-  review using Codex (OpenAI) as an MCP server. Claude builds from specs; Codex reviews peer reviewly.
-  Covers setup, MCP configuration, iteration patterns, convergence detection, and completion criteria.
+  using Codex (OpenAI). Claude builds from specs; Codex reviews adversarially.
+  Primary path: Codex CLI delegation via codex-review.sh (fast, no MCP overhead).
+  Legacy fallback: Codex as MCP server when CLI delegation is unavailable.
+  Covers setup, iteration patterns, convergence detection, and completion criteria.
   Triggers: "peer review loop", "ralph loop with codex", "blueprint ralph", "peer review build loop",
   "cross-model loop", "codex peer reviewer", "blueprint to ralph loop"
 ---
 
 # Peer Review Loop — Blueprint + Ralph Loop + Codex Peer reviewer
 
-Run a Blueprint blueprint through a Ralph Loop where Claude builds and Codex peer reviewly reviews.
+Run a Blueprint blueprint through a Ralph Loop where Claude builds and Codex adversarially reviews.
 This is the most rigorous automated quality process available: every few iterations, a completely
 different model (different training data, different biases, different blind spots) challenges
 your implementation.
@@ -42,7 +44,7 @@ your implementation.
 │       ▲                                      │       │
 │       │                                      ▼       │
 │  ┌──────────┐    ┌──────────────┐    ┌────────────┐ │
-│  │  Fix      │◀──│ Parse        │◀──│  Codex MCP │ │
+│  │  Fix      │◀──│ Parse        │◀──│  Codex CLI │ │
 │  │  findings │    │ findings     │    │  (Review)  │ │
 │  └──────────┘    └──────────────┘    └────────────┘ │
 │                                                      │
@@ -50,6 +52,23 @@ your implementation.
 │              no CRITICAL/HIGH findings               │
 └─────────────────────────────────────────────────────┘
 ```
+
+### Review Invocation: Codex CLI (primary) vs MCP (legacy)
+
+The peer review loop supports two invocation paths:
+
+1. **Codex CLI delegation (primary)** — Uses `scripts/codex-review.sh` which
+   calls `codex` directly in `--approval-mode full-auto` with a structured
+   review prompt. Faster, no MCP server overhead, findings are parsed and
+   appended to `context/impl/impl-review-findings.md` automatically.
+
+2. **MCP server (legacy fallback)** — Configures Codex as an MCP server in
+   `.mcp.json`. Claude calls the MCP tool on review iterations. Used only when
+   Codex CLI delegation is unavailable (e.g., older Codex versions).
+
+The build script (`setup-build.sh`) auto-detects which path to use: if
+`codex-review.sh` is present and `codex` CLI is available, it uses CLI
+delegation. Otherwise it falls back to MCP configuration.
 
 ---
 
@@ -84,14 +103,33 @@ your implementation.
 
 ---
 
-## Codex MCP Server
+## Codex Review Invocation
 
-The command configures Codex as an MCP server automatically:
+### Primary: Codex CLI via codex-review.sh
+
+When `codex` CLI is available, the loop delegates review to `scripts/codex-review.sh`
+which exposes the `bp_codex_review` function. This runs Codex in `full-auto` mode with
+a structured adversarial review prompt, parses findings into a standardized table, and
+appends them to `context/impl/impl-review-findings.md`.
+
+```bash
+# What the build loop runs on review iterations:
+source scripts/codex-review.sh
+bp_codex_review --base main
+```
+
+The CLI path is faster (no MCP server startup), produces structured findings with
+severity levels (P0-P3), and handles fallback gracefully if Codex is unavailable.
+
+### Legacy fallback: Codex MCP Server
+
+When Codex CLI delegation is not available, the command configures Codex as an MCP
+server automatically:
 
 ```json
 {
   "mcpServers": {
-    "codex-peer reviewer": {
+    "codex-reviewer": {
       "command": "codex",
       "args": ["mcp-server", "-c", "model=\"gpt-5.4\""]
     }
@@ -118,9 +156,9 @@ Use `--codex-model` to specify which OpenAI model Codex should use:
 
 ```
 Iteration 1: BUILD  — Read blueprint, implement first requirement
-Iteration 2: REVIEW — Call Codex MCP, get findings, fix CRITICAL/HIGH
+Iteration 2: REVIEW — Call Codex CLI (or MCP fallback), get findings, fix CRITICAL/HIGH
 Iteration 3: BUILD  — Continue implementing, address remaining findings
-Iteration 4: REVIEW — Call Codex MCP again, new findings on new code
+Iteration 4: REVIEW — Call Codex CLI (or MCP fallback) again, new findings on new code
 ...
 Iteration N: BUILD  — All requirements met, all findings fixed
              → outputs <promise>SPEC COMPLETE</promise>

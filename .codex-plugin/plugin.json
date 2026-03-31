@@ -1,0 +1,38 @@
+{
+  "name": "bp",
+  "version": "2.0.0",
+  "description": "Blueprint Framework for Codex and Claude Code. Draft blueprints, architect build sites, and execute adaptive build waves with validation and peer review.",
+  "author": {
+    "name": "Julius Brussee",
+    "url": "https://github.com/JuliusBrussee"
+  },
+  "homepage": "https://github.com/JuliusBrussee/sdd-os",
+  "repository": "https://github.com/JuliusBrussee/sdd-os",
+  "license": "MIT",
+  "keywords": [
+    "blueprint",
+    "agents",
+    "codex",
+    "claude-code",
+    "spec-driven-development"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Blueprint",
+    "shortDescription": "Blueprint-driven software delivery for coding agents",
+    "longDescription": "Turn natural language into blueprints, blueprints into build sites, and build sites into validated code with adaptive parallel execution.",
+    "developerName": "Julius Brussee",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/JuliusBrussee/sdd-os",
+    "defaultPrompt": [
+      "Draft blueprints for a feature from my repo context.",
+      "Architect the current blueprints into a build site.",
+      "Build the current site with adaptive parallel work packets."
+    ],
+    "brandColor": "#1F4B99"
+  }
+}

@@ -64,17 +64,17 @@ When a prompt uses agent teams, it must define the team hierarchy clearly. Agent
 ```
 Team Lead (delegate mode -- never writes code directly)
 +-- Teammate A: {auth-service}
-|   Worktree: ./worktrees/auth-service
+|   Isolation: worktree (via Agent tool)
 |   Branch: feat/impl/{auth-service}
 |   Owns: src/auth-service/*, tests/auth-service/*
 |
 +-- Teammate B: {data-layer}
-|   Worktree: ./worktrees/data-layer
+|   Isolation: worktree (via Agent tool)
 |   Branch: feat/impl/{data-layer}
 |   Owns: src/data-layer/*, tests/data-layer/*
 |
 +-- Teammate C: {frontend-ui}
-    Worktree: ./worktrees/frontend-ui
+    Isolation: worktree (via Agent tool)
     Branch: feat/impl/{frontend-ui}
     Owns: src/frontend-ui/*, tests/frontend-ui/*
 ```
@@ -84,7 +84,7 @@ Team Lead (delegate mode -- never writes code directly)
 | Element | Purpose |
 |---------|---------|
 | Role designation | "delegate mode" for lead, domain name for teammates |
-| Worktree path | Where the teammate works in isolation |
+| Isolation mode | `isolation: "worktree"` when dispatching via the Agent tool |
 | Branch name | Git branch for the teammate's work |
 | File ownership | Exactly which files/directories this teammate owns |
 
@@ -274,8 +274,7 @@ When the team lead spawns a teammate, the teammate is a fresh process with NO in
 ## Your Role
 You are Teammate {NAME}, responsible for implementing {DOMAIN}.
 
-## Your Worktree
-Work ONLY in: `./worktrees/{name}`
+## Your Branch
 Branch: `feat/impl/{name}`
 
 ## Your Files
@@ -311,7 +310,7 @@ After each task:
 
 1. **Self-contained:** The spawn prompt must contain everything the teammate needs
 2. **No assumptions:** Do not assume the teammate knows anything about the project
-3. **Explicit constraints:** File ownership, branch, worktree path must all be stated
+3. **Explicit constraints:** File ownership and branch must all be stated
 4. **Context references:** Point to blueprint/plan/impl files, do not copy their content into the prompt
 5. **Validation commands:** Include the exact commands to run
 

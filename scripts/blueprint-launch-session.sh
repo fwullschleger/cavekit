@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # blueprint-launch-session — Creates a tmux session with one pane per build site.
-# Each pane runs Claude in its own git worktree with /bp:build.
+# Each pane runs Claude in the project directory with /bp:build.
 #
 # Usage: blueprint-launch-session.sh [--expanded] <frontier-path> [<frontier-path> ...]
 #
@@ -35,7 +35,6 @@ command -v tmux &>/dev/null || { echo "tmux not found. Install: brew install tmu
 command -v claude &>/dev/null || { echo "claude not found." >&2; exit 1; }
 
 PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-PROJECT_NAME="$(basename "$PROJECT_ROOT")"
 
 # Kill existing session if running
 if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
@@ -49,58 +48,29 @@ derive_name() {
   basename "$1" .md | sed -E 's/^(plan-|feature-frontier-|feature-|build-site-)//' | sed 's/-frontier$//'
 }
 
-# ─── Create worktrees ────────────────────────────────────────────────────────
+# ─── Derive names and check for resumable sessions ───────────────────────────
 
-WORKTREES=()
 NAMES=()
 RESUMING=()  # "true" or "false" per frontier
 
 for frontier in "${FRONTIERS[@]}"; do
   name=$(derive_name "$frontier")
   NAMES+=("$name")
-  worktree_path="${PROJECT_ROOT}/../${PROJECT_NAME}-blueprint-${name}"
-  branch_name="blueprint/${name}"
 
-  if [[ -d "$worktree_path" ]]; then
-    echo "  Worktree exists: $worktree_path"
-    # Check if this is a resumable session (has ralph-loop state or impl progress)
-    if [[ -f "$worktree_path/.claude/ralph-loop.local.md" ]] || \
-       ls "$worktree_path/context/impl/impl-"*.md &>/dev/null 2>&1; then
-      RESUMING+=("true")
-      echo "    → Will resume existing session"
-    else
-      RESUMING+=("false")
-    fi
+  # Check if this is a resumable session (has ralph-loop state or impl progress)
+  if [[ -f "$PROJECT_ROOT/.claude/ralph-loop.local.md" ]] || \
+     ls "$PROJECT_ROOT/context/impl/impl-"*.md &>/dev/null 2>&1; then
+    RESUMING+=("true")
+    echo "  $name: will resume existing session"
   else
-    # Create branch if it doesn't exist
-    if ! git rev-parse --verify "$branch_name" &>/dev/null; then
-      git branch "$branch_name" HEAD 2>/dev/null || true
-    fi
-    git worktree add "$worktree_path" "$branch_name" 2>/dev/null || {
-      echo "  Failed to create worktree for $name, using existing branch" >&2
-      git worktree add --force "$worktree_path" "$branch_name" 2>/dev/null || true
-    }
-    echo "  Created worktree: $worktree_path (branch: $branch_name)"
     RESUMING+=("false")
   fi
-
-  WORKTREES+=("$worktree_path")
 done
-
-# ─── Resolve frontier file path relative to worktree ─────────────────────────
-
-resolve_frontier_in_worktree() {
-  local original_path="$1"
-  local worktree="$2"
-  # The frontier path is relative to project root — just swap the prefix
-  local rel_path="${original_path#$PROJECT_ROOT/}"
-  echo "${worktree}/${rel_path}"
-}
 
 # ─── Write launcher script for each pane ─────────────────────────────────────
 
 write_launcher() {
-  local worktree="$1"
+  local project_dir="$1"
   local frontier_path="$2"
   local name="$3"
   local resuming="$4"
@@ -120,9 +90,9 @@ write_launcher() {
   cat > "$launcher" <<LAUNCHER_EOF
 #!/bin/bash
 rm -f "$launcher"
-cd "$worktree"
+cd "$project_dir"
 echo "Blueprint Agent: $name [$mode_label]"
-echo "Worktree: $worktree"
+echo "Directory: $project_dir"
 echo "Frontier: $frontier_basename"
 echo ""
 $claude_cmd
@@ -141,19 +111,17 @@ if [[ "$EXPANDED" == "true" ]]; then
 
   for i in "${!FRONTIERS[@]}"; do
     name="${NAMES[$i]}"
-    worktree="${WORKTREES[$i]}"
     frontier="${FRONTIERS[$i]}"
-    wt_frontier=$(resolve_frontier_in_worktree "$frontier" "$worktree")
-    launcher=$(write_launcher "$worktree" "$wt_frontier" "$name" "${RESUMING[$i]}")
+    launcher=$(write_launcher "$PROJECT_ROOT" "$frontier" "$name" "${RESUMING[$i]}")
 
     if [[ "$FIRST" == "true" ]]; then
       # Create session with first window
-      tmux new-session -d -s "$SESSION_NAME" -n "$name" -c "$worktree" \
+      tmux new-session -d -s "$SESSION_NAME" -n "$name" -c "$PROJECT_ROOT" \
         "bash $launcher; exec bash"
       FIRST=false
     else
       # Add new window
-      tmux new-window -t "$SESSION_NAME" -n "$name" -c "$worktree" \
+      tmux new-window -t "$SESSION_NAME" -n "$name" -c "$PROJECT_ROOT" \
         "bash $launcher; exec bash"
     fi
 
@@ -161,11 +129,11 @@ if [[ "$EXPANDED" == "true" ]]; then
     RIGHT_WIDTH=$(( $(tmux display-message -t "$SESSION_NAME:${WIN_IDX}" -p '#{window_width}') * 30 / 100 ))
     [[ "$RIGHT_WIDTH" -lt 35 ]] && RIGHT_WIDTH=35
 
-    tmux split-window -h -t "$SESSION_NAME:${WIN_IDX}" -l "$RIGHT_WIDTH" -c "$worktree" \
+    tmux split-window -h -t "$SESSION_NAME:${WIN_IDX}" -l "$RIGHT_WIDTH" -c "$PROJECT_ROOT" \
       "exec bash \"$SCRIPT_DIR/dashboard-progress.sh\""
     tmux select-pane -T "blueprint-progress"
 
-    tmux split-window -v -t "$SESSION_NAME:${WIN_IDX}" -c "$worktree" \
+    tmux split-window -v -t "$SESSION_NAME:${WIN_IDX}" -c "$PROJECT_ROOT" \
       "exec bash \"$SCRIPT_DIR/dashboard-activity.sh\""
     tmux select-pane -T "blueprint-activity"
 
@@ -186,18 +154,16 @@ else
 
   for i in "${!FRONTIERS[@]}"; do
     name="${NAMES[$i]}"
-    worktree="${WORKTREES[$i]}"
     frontier="${FRONTIERS[$i]}"
-    wt_frontier=$(resolve_frontier_in_worktree "$frontier" "$worktree")
-    launcher=$(write_launcher "$worktree" "$wt_frontier" "$name" "${RESUMING[$i]}")
+    launcher=$(write_launcher "$PROJECT_ROOT" "$frontier" "$name" "${RESUMING[$i]}")
 
     if [[ "$FIRST" == "true" ]]; then
-      tmux new-session -d -s "$SESSION_NAME" -n "blueprint-agents" -c "$worktree" \
+      tmux new-session -d -s "$SESSION_NAME" -n "blueprint-agents" -c "$PROJECT_ROOT" \
         "bash $launcher; exec bash"
       FIRST=false
     else
       # Split from the first pane to add more
-      tmux split-window -t "$SESSION_NAME:0" -c "$worktree" \
+      tmux split-window -t "$SESSION_NAME:0" -c "$PROJECT_ROOT" \
         "bash $launcher; exec bash"
     fi
 
@@ -255,9 +221,9 @@ tmux set-option -t "$SESSION_NAME" mouse on 2>/dev/null || true
 # ─── Report & attach ────────────────────────────────────────────────────────
 
 echo ""
-echo "Launched ${#FRONTIERS[@]} Blueprint agents:"
+echo "Launched ${#FRONTIERS[@]} Blueprint agents in $PROJECT_ROOT:"
 for i in "${!NAMES[@]}"; do
-  echo "  ${NAMES[$i]} → ${WORKTREES[$i]}"
+  echo "  ${NAMES[$i]}"
 done
 echo ""
 echo "Attaching to tmux session '$SESSION_NAME'..."

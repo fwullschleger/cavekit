@@ -66,7 +66,7 @@ Create plans using this task template:
 ```
 
 ### 4. Create Build Site
-Generate `plan-build-site.md` showing dependency tiers:
+Generate `plan-build-site.md` showing dependency tiers and a parallelization graph:
 
 ```markdown
 # Build Site
@@ -81,7 +81,19 @@ Generate `plan-build-site.md` showing dependency tiers:
 
 ## Tier 2 — Depends on Tier 1
 ...
+
+## Dependency Graph
+
+```mermaid
+graph LR
+    T-001 --> T-002
+    T-005 --> T-006
+    T-002 --> T-007
+    T-006 --> T-007
 ```
+```
+
+The dependency graph uses Mermaid `graph LR`. Arrows point from dependency → dependent. Tasks at the same depth with no edges between them can run in parallel.
 
 ### 5. Create Known Issues Backlog
 Generate `plan-known-issues.md` with prioritized issues:

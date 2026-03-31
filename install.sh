@@ -34,6 +34,7 @@ printf "${B}Installer${R}\n\n"
 
 command -v git &>/dev/null || fail "git not found."
 command -v claude &>/dev/null || warn "claude CLI not found. Install Claude Code to use /bp:... commands."
+command -v codex &>/dev/null || warn "codex CLI not found. Codex local plugin sync will still be configured."
 command -v tmux &>/dev/null || warn "tmux not found. Install for the parallel launcher: brew install tmux"
 
 # ─── Create marketplace with symlink to repo ─────────────────────────────
@@ -122,6 +123,13 @@ PYEOF
   fi
 fi
 
+# ─── Sync Codex local plugin ────────────────────────────────────────────────
+
+info "Configuring Codex local plugin..."
+
+chmod +x "$INSTALL_DIR/scripts/sync-codex-plugin.sh"
+"$INSTALL_DIR/scripts/sync-codex-plugin.sh"
+
 # ─── Install blueprint CLI ─────────────────────────────────────────────────
 
 info "Installing blueprint command..."
@@ -152,13 +160,17 @@ printf "    blueprint --monitor                 Pick build sites and launch agen
 printf "    blueprint --monitor --expanded      One tmux window per build site\n"
 printf "    blueprint --status                  Show build site progress\n"
 printf "    blueprint --analytics               Show loop trends\n"
-printf "    blueprint --kill                    Stop sessions and clean worktrees\n"
+printf "    blueprint --kill                    Stop sessions\n"
 printf "\n"
 printf "  ${B}Claude:${R}\n"
 printf "    /bp:draft                    Draft blueprints\n"
 printf "    /bp:architect                Architect build sites\n"
 printf "    /bp:build                    Build from blueprints\n"
 printf "    /bp:inspect                  Inspect the build\n"
-printf "    /bp:merge                    Merge completed Blueprint branches\n"
+printf "    /bp:progress                 Check build progress\n"
 printf "\n"
-printf "  Restart Claude Code to load the plugin.\n\n"
+printf "  ${B}Codex:${R}\n"
+printf "    Synced local plugin via ~/plugins/bp and ~/.agents/plugins/marketplace.json\n"
+printf "    Linked prompts into ~/.codex/prompts (for /prompts:bp-... commands)\n"
+printf "\n"
+printf "  Restart Claude Code and Codex to load the plugin changes.\n\n"

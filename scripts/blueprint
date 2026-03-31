@@ -5,7 +5,7 @@
 # Usage:
 #   blueprint --monitor [--expanded]   Interactive launcher — pick build sites, launch in tmux
 #   blueprint --status                 Show build site progress from any terminal
-#   blueprint --kill                   Kill all Blueprint sessions and clean up worktrees
+#   blueprint --kill                   Kill all Blueprint sessions
 #   blueprint --analytics              Show trends across Blueprint cycles
 #   blueprint --help                   Show this help
 
@@ -46,20 +46,17 @@ Usage:
   blueprint --monitor [--expanded]   Pick build sites, launch parallel agents in tmux
   blueprint --status                 Show build site progress
   blueprint --analytics              Show trends across Blueprint cycles
-  blueprint --merge                  Guided merge of completed branches into main
   blueprint --kill                   Stop everything and clean up
 
 Monitor modes:
   Default:    All agents in one tmux window (horizontal ≤3, tiled 4+)
   --expanded: One tmux window per agent with progress+activity dashboards
 
-In-progress build sites can be selected to resume from existing worktrees.
-
 Examples:
   blueprint --monitor              Pick and launch build sites
   blueprint --monitor --expanded   Same, with full dashboard per agent
   blueprint --status               Check progress from another terminal
-  blueprint --kill                 Stop all agents, remove worktrees
+  blueprint --kill                 Stop all agents
 EOF
 }
 
@@ -68,31 +65,22 @@ EOF
 do_status() {
   local PROJECT_ROOT
   PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-  local PROJECT_NAME
-  PROJECT_NAME="$(basename "$PROJECT_ROOT")"
 
   local found=false
 
-  for wt in "${PROJECT_ROOT}/../${PROJECT_NAME}-blueprint-"*; do
-    [[ -d "$wt" ]] || continue
+  # Check for frontier files in the project directory
+  for frontier in "$PROJECT_ROOT"/context/frontiers/*frontier*.md "$PROJECT_ROOT"/context/sites/*site*.md; do
+    [[ -f "$frontier" ]] || continue
     found=true
     local name
-    name=$(basename "$wt" | sed "s/^${PROJECT_NAME}-blueprint-//")
-
-    # Count tasks
-    local frontier=""
-    for f in "$wt"/context/frontiers/*frontier*.md; do
-      [[ -f "$f" ]] && frontier="$f" && break
-    done
+    name=$(basename "$frontier" .md | sed -E 's/^(plan-|feature-frontier-|feature-|build-site-)//' | sed 's/-frontier$//')
 
     local total=0 done_count=0
-    if [[ -n "$frontier" ]]; then
-      total=$(count_frontier_tasks "$frontier")
-    fi
+    total=$(count_frontier_tasks "$frontier")
 
     # Count done from impl
     local done_ids=""
-    for impl in "$wt"/context/impl/impl-*.md; do
+    for impl in "$PROJECT_ROOT"/context/impl/impl-*.md; do
       [[ -f "$impl" ]] || continue
       done_ids+=$(grep -iE 'DONE' "$impl" 2>/dev/null | grep -oE "$TASK_ID_PATTERN" || true)
       done_ids+=$'\n'
@@ -101,11 +89,11 @@ do_status() {
 
     # Check loop state
     local status_icon="·"
-    if [[ -f "$wt/.claude/ralph-loop.local.md" ]]; then
+    if [[ -f "$PROJECT_ROOT/.claude/ralph-loop.local.md" ]]; then
       local iter
-      iter=$(grep -m1 '^iteration:' "$wt/.claude/ralph-loop.local.md" 2>/dev/null | awk '{print $2}' || echo "?")
+      iter=$(grep -m1 '^iteration:' "$PROJECT_ROOT/.claude/ralph-loop.local.md" 2>/dev/null | awk '{print $2}' || echo "?")
       local max_iter
-      max_iter=$(grep -m1 '^max_iterations:' "$wt/.claude/ralph-loop.local.md" 2>/dev/null | awk '{print $2}' || echo "?")
+      max_iter=$(grep -m1 '^max_iterations:' "$PROJECT_ROOT/.claude/ralph-loop.local.md" 2>/dev/null | awk '{print $2}' || echo "?")
       status_icon="⟳ iter ${iter}/${max_iter},"
     elif [[ "$total" -gt 0 && "$done_count" -ge "$total" ]]; then
       status_icon="✓"
@@ -115,7 +103,7 @@ do_status() {
   done
 
   if [[ "$found" == "false" ]]; then
-    echo "  No active Blueprint worktrees found."
+    echo "  No active Blueprint sessions found."
     echo "  Run 'blueprint --monitor' to start."
   fi
 }
@@ -136,28 +124,9 @@ do_kill() {
   # Clean stale ralph-loop state from main project
   local PROJECT_ROOT
   PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-  local PROJECT_NAME
-  PROJECT_NAME="$(basename "$PROJECT_ROOT")"
   rm -f "$PROJECT_ROOT/.claude/ralph-loop.local.md"
 
-  # Clean ralph-loop state from worktrees before removing them
-  local CLEANED=0
-  for wt in "${PROJECT_ROOT}/../${PROJECT_NAME}-blueprint-"*; do
-    [[ -d "$wt" ]] || continue
-    rm -f "$wt/.claude/ralph-loop.local.md"
-    # Prune first to handle stale worktrees
-    git worktree prune 2>/dev/null || true
-    git worktree remove "$wt" --force 2>/dev/null && CLEANED=$((CLEANED + 1))
-  done
-
-  # Clean up blueprint/* branches
-  local BRANCHES=0
-  while IFS= read -r branch; do
-    [[ -z "$branch" ]] && continue
-    git branch -D "$branch" 2>/dev/null && BRANCHES=$((BRANCHES + 1))
-  done < <(git branch --list 'blueprint/*' 2>/dev/null | sed 's/^[* ]*//')
-
-  echo "Killed $KILLED sessions, cleaned $CLEANED worktrees, deleted $BRANCHES branches."
+  echo "Killed $KILLED sessions."
 }
 
 # ─── --monitor ───────────────────────────────────────────────────────────────
@@ -223,13 +192,6 @@ case "${1:-}" in
     ;;
   --analytics)
     exec "$SCRIPT_DIR/blueprint-analytics.sh"
-    ;;
-  --merge)
-    echo "Run /blueprint:merge inside Claude Code to merge branches with blueprint-aware conflict resolution."
-    echo ""
-    echo "Branches to merge:"
-    git branch --list 'blueprint/*' 2>/dev/null | sed 's/^/  /' || echo "  (none)"
-    exit 0
     ;;
   --monitor)
     shift

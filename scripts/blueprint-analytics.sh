@@ -35,16 +35,6 @@ for archive_log in "$PROJECT_ROOT"/context/impl/archive/*/loop-log.md; do
   [[ -f "$archive_log" ]] && LOGS+=("$archive_log")
 done
 
-# Also check worktrees
-PROJECT_NAME="$(basename "$PROJECT_ROOT")"
-for wt in "${PROJECT_ROOT}/../${PROJECT_NAME}-blueprint-"*; do
-  [[ -d "$wt" ]] || continue
-  [[ -f "$wt/context/impl/loop-log.md" ]] && LOGS+=("$wt/context/impl/loop-log.md")
-  for archive_log in "$wt"/context/impl/archive/*/loop-log.md; do
-    [[ -f "$archive_log" ]] && LOGS+=("$archive_log")
-  done
-done
-
 if [[ ${#LOGS[@]} -eq 0 ]]; then
   echo "No loop logs found. Run /bp:build first."
   exit 0
@@ -101,14 +91,14 @@ for log in "${LOGS[@]}"; do
 done
 
 # Count dead ends from impl files
-for impl_dir in "$PROJECT_ROOT/context/impl" "${PROJECT_ROOT}/../${PROJECT_NAME}-blueprint-"*/context/impl; do
-  [[ -d "$impl_dir" ]] || continue
+impl_dir="$PROJECT_ROOT/context/impl"
+if [[ -d "$impl_dir" ]]; then
   for impl in "$impl_dir"/impl-*.md "$impl_dir"/archive/*/impl-*.md; do
     [[ -f "$impl" ]] || continue
     dead=$(grep -ciE 'dead.end' "$impl" 2>/dev/null || true)
     [[ -n "$dead" ]] && total_dead_ends=$((total_dead_ends + dead))
   done
-done
+fi
 
 # ─── Overview ─────────────────────────────────────────────────────────────────
 
@@ -146,9 +136,8 @@ if [[ $total_dead_ends -gt 0 ]]; then
   echo "  ${RD}Dead ends:${R} ${B}${total_dead_ends}${R}"
 
   echo "  ${D}Recent dead ends:${R}"
-  for impl_dir in "$PROJECT_ROOT/context/impl" "${PROJECT_ROOT}/../${PROJECT_NAME}-blueprint-"*/context/impl; do
-    [[ -d "$impl_dir" ]] || continue
-    for impl in "$impl_dir"/impl-*.md; do
+  if [[ -d "$PROJECT_ROOT/context/impl" ]]; then
+    for impl in "$PROJECT_ROOT/context/impl"/impl-*.md; do
       [[ -f "$impl" ]] || continue
       grep -iB1 'dead.end' "$impl" 2>/dev/null | grep -E "$TASK_ID_PATTERN" | head -5 | while read -r dline; do
         task_id=$(echo "$dline" | grep -oE "$TASK_ID_PATTERN" | head -1)
@@ -156,7 +145,7 @@ if [[ $total_dead_ends -gt 0 ]]; then
         [[ -n "$task_id" ]] && echo "    ${RD}✕${R} ${task_id} ${D}${desc}${R}"
       done
     done
-  done
+  fi
 else
   echo "  ${GR}No dead ends recorded.${R}"
 fi
@@ -199,19 +188,12 @@ echo ""
 
 # ─── Active Agents ────────────────────────────────────────────────────────────
 
-echo "${B}Active Agents${R}"
-active_count=0
-for wt in "${PROJECT_ROOT}/../${PROJECT_NAME}-blueprint-"*; do
-  [[ -d "$wt" ]] || continue
-  name=$(basename "$wt" | sed "s/^${PROJECT_NAME}-blueprint-//")
-  if [[ -f "$wt/.claude/ralph-loop.local.md" ]]; then
-    iter=$(grep -m1 '^iteration:' "$wt/.claude/ralph-loop.local.md" 2>/dev/null | awk '{print $2}' || echo "?")
-    echo "  ${GR}⟳${R} ${name} — iteration ${iter}"
-    active_count=$((active_count + 1))
-  fi
-done
-if [[ $active_count -eq 0 ]]; then
-  echo "  ${D}No active agents.${R}"
+echo "${B}Active Agent${R}"
+if [[ -f "$PROJECT_ROOT/.claude/ralph-loop.local.md" ]]; then
+  iter=$(grep -m1 '^iteration:' "$PROJECT_ROOT/.claude/ralph-loop.local.md" 2>/dev/null | awk '{print $2}' || echo "?")
+  echo "  ${GR}⟳${R} active — iteration ${iter}"
+else
+  echo "  ${D}No active agent.${R}"
 fi
 echo ""
 echo "${D}Data from ${#LOGS[@]} log files across ${total_cycles} cycles.${R}"

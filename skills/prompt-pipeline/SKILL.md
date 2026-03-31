@@ -169,16 +169,16 @@ Agent Team Structure:
   Lead (delegate mode -- never writes code directly)
   +-- Teammate A: domain-auth
   |   Owns: src/auth/*, context/impl/impl-auth.md
-  |   Worktree: worktrees/auth
+  |   Dispatch: Agent tool with isolation: "worktree"
   +-- Teammate B: domain-data
   |   Owns: src/data/*, context/impl/impl-data.md
-  |   Worktree: worktrees/data
+  |   Dispatch: Agent tool with isolation: "worktree"
   +-- Teammate C: domain-ui
       Owns: src/ui/*, context/impl/impl-ui.md
-      Worktree: worktrees/ui
+      Dispatch: Agent tool with isolation: "worktree"
 ```
 
-**Why:** Agents need to understand their role, what they own, and where they work. Without this explicit structure, agents may conflict with each other.
+**Why:** Agents need to understand their role and what they own. Dispatch subagents with `isolation: "worktree"` via the Agent tool -- Claude Code handles worktree creation and cleanup transparently.
 
 ### 4.3 Batching Rules
 
@@ -241,7 +241,7 @@ You are implementing {DOMAIN} for the {PROJECT_NAME} project.
 
 ### Your Role
 - You own: {FILE_PATTERNS}
-- Your worktree: {WORKTREE_PATH}
+- Isolation: dispatched via Agent tool with `isolation: "worktree"`
 - Your impl tracking: context/impl/impl-{DOMAIN}.md
 
 ### Context to Read First
@@ -445,7 +445,7 @@ The iteration loop handles: iteration counting, timeouts, nudging idle agents, d
 ## Cross-References
 
 - **Prompt engineering details:** See `references/prompt-engineering.md` for the complete reference on runtime inputs, spawn templates, task templates, time guards, and file ownership.
-- **Agent team patterns:** See `references/agent-team-patterns.md` for coordination patterns, batching, worktree isolation, and merge protocol.
+- **Agent team patterns:** See `references/agent-team-patterns.md` for coordination patterns, batching, agent isolation, and merge protocol.
 - **Convergence monitoring:** See `bp:convergence-monitoring` skill for detecting when the iteration loop should stop.
 - **Revision:** See `bp:revision` skill for how prompt 006 traces bugs back to specs.
 - **Context architecture:** See `bp:context-architecture` skill for the directory structure that prompts read from and write to.

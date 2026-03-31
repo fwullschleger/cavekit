@@ -223,7 +223,7 @@ Plans and implementation tracking files update each other. The Architect phase r
 - Failed validations from the Build phase
 - Gaps identified during monitoring
 - Manual fixes made by humans
-- Running application, git history, worktree activity
+- Running application, git history, agent activity
 
 **Outputs:**
 - Updated blueprints with missing requirements/validation
@@ -239,7 +239,7 @@ Plans and implementation tracking files update each other. The Architect phase r
 - Update blueprints (not just code) with missing requirements
 - Generate regression tests
 - Re-run validation to verify the fix emerges from updated blueprints alone
-- Periodically scan worktrees, git history, and context changes
+- Periodically scan git history and context changes
 - Report on convergence metrics (test pass rate, change velocity)
 
 **Human Role:**

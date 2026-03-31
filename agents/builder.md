@@ -89,8 +89,21 @@ When an approach fails:
    ```
 3. Move on to the next unblocked task, or report the blocker
 
+## CRITICAL: Do NOT falsely mark tasks as DONE
+
+**NEVER mark a task DONE because "existing code already handles this".**
+A task is DONE only when you have:
+1. Written or modified code specifically for this task's acceptance criteria
+2. Verified EACH acceptance criterion individually (not "it looks like it works")
+3. Written or run tests that prove the criteria are met
+
+If existing code partially covers a requirement, implement the MISSING parts.
+If it fully covers every criterion, write a test proving it and document exactly
+which existing code satisfies which criterion — with file paths and line numbers.
+
 ## Anti-Patterns to Avoid
 
+- **False completion**: Marking a task DONE because related code exists. This is the #1 source of wasted tokens.
 - **Gold-plating**: Implementing beyond what the blueprint requires. If it is not in the acceptance criteria, do not build it.
 - **Retrying dead ends**: Always check dead-ends.md before starting an approach. If it has been tried and failed, find an alternative.
 - **Skipping validation**: Every change must pass through gates. "It probably works" is not acceptable.

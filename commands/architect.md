@@ -98,7 +98,33 @@ last_edited: "{CURRENT_DATE_UTC}"
 
 If a site already exists, ask the user whether to overwrite or keep the existing one.
 
-## Step 6: Report
+## Step 6: Dependency Graph
+
+After the tier tables, add a **directed parallelization graph** using Mermaid syntax. This shows at a glance which tasks can run in parallel and what blocks what:
+
+```markdown
+## Dependency Graph
+
+```mermaid
+graph LR
+    T-001 --> T-003
+    T-001 --> T-004
+    T-002 --> T-005
+    T-003 --> T-006
+    T-004 --> T-006
+    T-005 --> T-007
+```
+```
+
+Rules for the graph:
+- Every task appears as a node
+- Arrows point from dependency → dependent (A --> B means "A must finish before B starts")
+- Tasks with NO incoming arrows can run immediately (Tier 0)
+- Tasks at the same depth with no edges between them can run in parallel
+- Use `graph LR` (left-to-right) for readability
+- Group by tier visually where possible
+
+## Step 7: Report
 
 ```markdown
 ## Architect Report
@@ -106,11 +132,11 @@ If a site already exists, ask the user whether to overwrite or keep the existing
 ### Blueprints Read: {count}
 ### Tasks Generated: {count}
 ### Tiers: {count}
-### Tier 0 Tasks: {count} (can start immediately)
+### Tier 0 Tasks: {count} (can run in parallel immediately)
 
 ### Next Step
-Run `/bp:build` to start the implementation loop.
-Run `/bp:build --peer review` to add Codex review.
+Run `/bp:build` to start implementation (auto-parallelizes independent tasks).
+Run `/bp:build --peer-review` to add Codex review.
 ```
 
 ### Rules

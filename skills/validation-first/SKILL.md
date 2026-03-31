@@ -281,39 +281,39 @@ Before reporting completion:
 
 ## Merge Protocol
 
-When working with agent teams (multiple agents in parallel), the merge protocol ensures that integrating work from different agents does not break validation gates.
+When working with agent teams (multiple agents dispatched with `isolation: "worktree"` via the Agent tool), the merge protocol ensures that integrating work from different agents does not break validation gates.
 
 ### The Protocol
 
 ```
-Agent A completes work in worktree A
-Agent B completes work in worktree B
-Agent C completes work in worktree C
+Agent A completes work in its isolated branch
+Agent B completes work in its isolated branch
+Agent C completes work in its isolated branch
 
 Merge sequence (one at a time):
-1. Merge worktree A → main
+1. Merge Agent A's branch → main
 2. Run: {BUILD_COMMAND} → must pass
 3. Run: {TEST_COMMAND} → must pass
 4. Run: Launch verification → must pass
 5. If all pass → proceed
-6. If any fail → fix before merging next worktree
+6. If any fail → fix before merging next branch
 
-7. Merge worktree B → main
+7. Merge Agent B's branch → main
 8. Run: {BUILD_COMMAND} → must pass
 9. Run: {TEST_COMMAND} → must pass
-10. ...repeat for each worktree
+10. ...repeat for each agent branch
 ```
 
 ### Why One at a Time?
 
-Merging all worktrees simultaneously and then running tests makes it impossible to determine which merge caused a failure. Merging one at a time with validation between each merge pinpoints failures immediately.
+Merging all agent branches simultaneously and then running tests makes it impossible to determine which merge caused a failure. Merging one at a time with validation between each merge pinpoints failures immediately.
 
 ### Merge Protocol Rules
 
-1. **Merge one worktree at a time** — never batch-merge
+1. **Merge one agent branch at a time** — never batch-merge
 2. **Run Gates 1-3 after each merge** — build, unit tests, integration tests
 3. **Run Gate 5 after all merges** — launch verification on the fully integrated codebase
-4. **Clean up worktrees and branches** after successful merge
+4. **Clean up branches** after successful merge (Claude Code handles worktree cleanup automatically)
 5. **If a merge fails validation,** fix it before proceeding to the next merge
 
 ---

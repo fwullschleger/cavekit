@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Blueprint Build Setup Script
-# Archives old cycle, reads frontier, starts Ralph Loop.
+# Archives old cycle, reads build site, starts Ralph Loop.
 # Optionally configures Codex MCP for peer review.
 
 set -euo pipefail
@@ -10,7 +10,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 FILTER=""
 PEER_REVIEW=false
-ABANDON=false
 MAX_ITERATIONS=20
 COMPLETION_PROMISE="BLUEPRINT COMPLETE"
 CODEX_MODEL="gpt-5.4"
@@ -31,7 +30,6 @@ OPTIONS:
   --codex-model <model>          Codex model (default: gpt-5.4)
   --review-interval <n>          Review every Nth iteration (default: 2)
   --max-iterations <n>           Max iterations (default: 20)
-  --abandon                      Remove worktree and branch for the filtered build
   --completion-promise '<text>'  Completion phrase (default: "BLUEPRINT COMPLETE")
   -h, --help                     Show this help
 
@@ -40,7 +38,6 @@ EXAMPLES:
   /blueprint build --filter v2
   /blueprint build --peer-review
   /blueprint build --peer-review --max-iterations 30
-  /blueprint build --filter v2 --abandon
 HELP_EOF
       exit 0
       ;;
@@ -51,10 +48,6 @@ HELP_EOF
       ;;
     --peer-review)
       PEER_REVIEW=true
-      shift
-      ;;
-    --abandon)
-      ABANDON=true
       shift
       ;;
     --codex-model)
@@ -85,218 +78,18 @@ HELP_EOF
   esac
 done
 
-# ─── Create worktree if not already in one ──────────────────────────────────
+# ─── Clean stale state ──────────────────────────────────────────────────────
 
-PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-PROJECT_NAME="$(basename "$PROJECT_ROOT")"
+rm -f .claude/ralph-loop.local.md
 
-# Detect if we're already in a worktree (blueprint --monitor creates these)
-IS_WORKTREE=false
-GIT_COMMON_DIR="$(git rev-parse --git-common-dir 2>/dev/null || true)"
-GIT_DIR="$(git rev-parse --git-dir 2>/dev/null || true)"
-if [[ -n "$GIT_COMMON_DIR" && -n "$GIT_DIR" && "$GIT_COMMON_DIR" != "$GIT_DIR" ]]; then
-  IS_WORKTREE=true
-fi
-
-if [[ "$IS_WORKTREE" == "false" ]]; then
-  # Clean any stale ralph-loop state from the main project dir
-  # This prevents the stop hook from hijacking non-Blueprint conversations
-  rm -f "$PROJECT_ROOT/.claude/ralph-loop.local.md"
-
-  # Derive worktree name from filter or build site
-  WT_NAME="${FILTER:-build}"
-  WT_PATH="${PROJECT_ROOT}/../${PROJECT_NAME}-blueprint-${WT_NAME}"
-  BRANCH_NAME="blueprint/${WT_NAME}"
-
-  # ─── Abandon mode (R3: Failure Recovery — option b) ──────────────────
-  if [[ "$ABANDON" == "true" ]]; then
-    if [[ -d "$WT_PATH" ]]; then
-      echo "🗑️  Abandoning worktree: $WT_PATH"
-      git worktree remove --force "$WT_PATH" 2>/dev/null || rm -rf "$WT_PATH"
-      git worktree prune 2>/dev/null || true
-      # Delete branch if it exists and has no remote tracking
-      if git rev-parse --verify "$BRANCH_NAME" &>/dev/null; then
-        git branch -D "$BRANCH_NAME" 2>/dev/null || true
-        echo "🗑️  Deleted branch: $BRANCH_NAME"
-      fi
-      echo "✅ Worktree and branch cleaned up"
-    else
-      echo "ℹ️  No worktree found at $WT_PATH — nothing to abandon"
-    fi
-    exit 0
-  fi
-
-  # ─── Recovery detection (R3: Failure Recovery) ──────────────────────────
-  # If worktree exists with stale ralph-loop state, a previous build was
-  # interrupted. Surface state and options to the user.
-  if [[ -d "$WT_PATH" ]] && [[ -f "$WT_PATH/.claude/ralph-loop.local.md" ]]; then
-    # Extract last commit info from worktree
-    WT_LAST_COMMIT=$(cd "$WT_PATH" && git log --oneline -1 2>/dev/null || echo "unknown")
-    WT_DIFF_STAT=$(cd "$WT_PATH" && git diff --stat "main...HEAD" 2>/dev/null | tail -1 || echo "no changes")
-    WT_BRANCH=$(cd "$WT_PATH" && git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "$BRANCH_NAME")
-
-    echo "⚠️  Previous build session detected in worktree" >&2
-    echo "" >&2
-    echo "   Branch:      $WT_BRANCH" >&2
-    echo "   Last commit:  $WT_LAST_COMMIT" >&2
-    echo "   Diff stats:   $WT_DIFF_STAT" >&2
-    echo "" >&2
-    echo "   Resuming build (merge main + verify env before restart)..." >&2
-    # Clean stale ralph-loop state so a fresh loop starts
-    rm -f "$WT_PATH/.claude/ralph-loop.local.md"
-  fi
-
-  if [[ -d "$WT_PATH" ]]; then
-    echo "📂 Using existing worktree: $WT_PATH"
-
-    # ─── Auto-merge main into worktree branch (R1: Auto-Merge on Resume) ───
-    # Ensure the agent always works with the latest code from main.
-    MERGE_BASE_BRANCH="main"
-    # Fetch latest main so we merge up-to-date content
-    git fetch origin "$MERGE_BASE_BRANCH" 2>/dev/null || true
-
-    # Perform the merge inside the worktree directory
-    MERGE_OUTPUT=$(cd "$WT_PATH" && git merge "origin/$MERGE_BASE_BRANCH" --no-edit 2>&1) || {
-      MERGE_EXIT=$?
-      if echo "$MERGE_OUTPUT" | grep -q "CONFLICT"; then
-        # Abort the failed merge to leave worktree in clean state
-        (cd "$WT_PATH" && git merge --abort 2>/dev/null || true)
-        echo "❌ Merge conflicts detected merging $MERGE_BASE_BRANCH into $BRANCH_NAME" >&2
-        echo "" >&2
-        echo "Conflicting files:" >&2
-        echo "$MERGE_OUTPUT" | grep "CONFLICT" >&2
-        echo "" >&2
-        echo "Options:" >&2
-        echo "  1. Resolve manually: cd $WT_PATH && git merge origin/$MERGE_BASE_BRANCH" >&2
-        echo "  2. Abort and recreate: git worktree remove $WT_PATH && re-run build" >&2
-        echo "  3. Continue without merge (worktree may be stale)" >&2
-        exit 1
-      else
-        echo "⚠️  Merge failed (exit $MERGE_EXIT): $MERGE_OUTPUT" >&2
-        echo "   Continuing with existing worktree state." >&2
-      fi
-    }
-
-    # Log merge result if successful
-    if [[ $? -eq 0 ]] && [[ -n "$MERGE_OUTPUT" ]]; then
-      if echo "$MERGE_OUTPUT" | grep -q "Already up to date"; then
-        echo "✅ Worktree already up to date with $MERGE_BASE_BRANCH"
-      else
-        echo "✅ Merged $MERGE_BASE_BRANCH into $BRANCH_NAME"
-        echo "   $MERGE_OUTPUT" | head -5
-      fi
-    fi
-  else
-    # Create branch if needed
-    if ! git rev-parse --verify "$BRANCH_NAME" &>/dev/null; then
-      git branch "$BRANCH_NAME" HEAD 2>/dev/null || true
-    fi
-    git worktree add "$WT_PATH" "$BRANCH_NAME" 2>/dev/null || {
-      git worktree add --force "$WT_PATH" "$BRANCH_NAME" 2>/dev/null || true
-    }
-    echo "📂 Created worktree: $WT_PATH (branch: $BRANCH_NAME)"
-  fi
-
-  # ─── Forward .env* files via symlinks (R2: Env Var Forwarding) ──────────
-  # Symlinks auto-reflect changes in project root without manual sync.
-  ENV_FORWARDED=0
-  for env_file in "$PROJECT_ROOT"/.env*; do
-    [[ -f "$env_file" ]] || continue
-    env_basename="$(basename "$env_file")"
-    target="$WT_PATH/$env_basename"
-    if [[ -L "$target" ]]; then
-      # Already a symlink — verify it points to the right place
-      if [[ "$(readlink "$target")" != "$env_file" ]]; then
-        rm -f "$target"
-        ln -s "$env_file" "$target"
-        ENV_FORWARDED=$((ENV_FORWARDED + 1))
-      fi
-    elif [[ -f "$target" ]]; then
-      # Regular file exists — replace with symlink for auto-sync
-      rm -f "$target"
-      ln -s "$env_file" "$target"
-      ENV_FORWARDED=$((ENV_FORWARDED + 1))
-    else
-      ln -s "$env_file" "$target"
-      ENV_FORWARDED=$((ENV_FORWARDED + 1))
-    fi
-  done
-  if [[ $ENV_FORWARDED -gt 0 ]]; then
-    echo "🔗 Forwarded $ENV_FORWARDED .env* file(s) to worktree via symlinks"
-  fi
-
-  # ─── Worktree health check (R4: Worktree Health Check) ──────────────────
-  HEALTH_WARNINGS=0
-  HEALTH_ERRORS=0
-
-  # Error: worktree path doesn't exist (shouldn't happen here, but defensive)
-  if [[ ! -d "$WT_PATH" ]]; then
-    echo "❌ HEALTH ERROR: Worktree path does not exist: $WT_PATH" >&2
-    HEALTH_ERRORS=$((HEALTH_ERRORS + 1))
-  fi
-
-  # Error: detached HEAD
-  WT_HEAD=$(cd "$WT_PATH" && git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
-  if [[ "$WT_HEAD" == "HEAD" ]]; then
-    echo "❌ HEALTH ERROR: Worktree is in detached HEAD state" >&2
-    HEALTH_ERRORS=$((HEALTH_ERRORS + 1))
-  fi
-
-  # Error: branch deleted
-  if [[ -n "$WT_HEAD" ]] && [[ "$WT_HEAD" != "HEAD" ]]; then
-    if ! git rev-parse --verify "$WT_HEAD" &>/dev/null 2>&1; then
-      echo "❌ HEALTH ERROR: Branch '$WT_HEAD' no longer exists" >&2
-      HEALTH_ERRORS=$((HEALTH_ERRORS + 1))
-    fi
-  fi
-
-  # Warning: uncommitted changes
-  WT_STATUS=$(cd "$WT_PATH" && git status --porcelain 2>/dev/null || echo "")
-  if [[ -n "$WT_STATUS" ]]; then
-    WT_DIRTY_COUNT=$(echo "$WT_STATUS" | wc -l | tr -d ' ')
-    echo "⚠️  HEALTH WARNING: $WT_DIRTY_COUNT uncommitted change(s) in worktree" >&2
-    HEALTH_WARNINGS=$((HEALTH_WARNINGS + 1))
-  fi
-
-  # Warning: env files missing (check if project root has env files but worktree doesn't)
-  for env_file in "$PROJECT_ROOT"/.env*; do
-    [[ -f "$env_file" ]] || continue
-    env_basename="$(basename "$env_file")"
-    if [[ ! -e "$WT_PATH/$env_basename" ]]; then
-      echo "⚠️  HEALTH WARNING: $env_basename missing from worktree" >&2
-      HEALTH_WARNINGS=$((HEALTH_WARNINGS + 1))
-    fi
-  done
-
-  # Write health check results for TUI consumption
-  mkdir -p "$WT_PATH/.claude"
-  cat > "$WT_PATH/.claude/health-check.json" <<HEALTH_EOF
-{"timestamp":"$(date -u +%Y-%m-%dT%H:%M:%SZ)","errors":$HEALTH_ERRORS,"warnings":$HEALTH_WARNINGS,"branch":"$WT_HEAD","status":"$(if [[ $HEALTH_ERRORS -gt 0 ]]; then echo "error"; elif [[ $HEALTH_WARNINGS -gt 0 ]]; then echo "warning"; else echo "healthy"; fi)"}
-HEALTH_EOF
-
-  if [[ $HEALTH_ERRORS -gt 0 ]]; then
-    echo "❌ Health check failed with $HEALTH_ERRORS error(s). Build cannot proceed." >&2
-    exit 1
-  elif [[ $HEALTH_WARNINGS -gt 0 ]]; then
-    echo "⚠️  Health check passed with $HEALTH_WARNINGS warning(s)"
-  else
-    echo "✅ Health check passed"
-  fi
-
-  # Switch to the worktree
-  cd "$WT_PATH"
-  echo "📂 Working in: $(pwd)"
-  echo "BLUEPRINT_WORKTREE_PATH=$WT_PATH"
-fi
-
-# ─── Find frontier (smart selection) ────────────────────────────────────────
+# ─── Find build site ────────────────────────────────────────────────────────
 #
 # Strategy:
 #   1. Only search context/sites/ (not context/plans/ — false positives)
-#   2. Exclude archive/ subdirectory (completed frontiers)
+#   2. Exclude archive/ subdirectory (completed builds)
 #   3. If --filter is set, match filter anywhere in filename
-#   4. Rank candidates: in-progress worktree > has incomplete tasks > rest
-#   5. If multiple ambiguous candidates, list them for visibility
+#   4. If multiple candidates, list them for user selection
+#   5. If exactly one, auto-select it
 
 FRONTIER_FILE=""
 ALL_CANDIDATES=()
@@ -334,7 +127,6 @@ fi
 if [[ ${#CANDIDATES[@]} -eq 0 ]]; then
   echo "❌ No build site found in context/sites/" >&2
   echo "   Run /bp:architect first to generate one." >&2
-  # Also check context/plans/ as a hint
   if [[ -d "context/plans" ]] && find "context/plans" -name "*site*" -type f 2>/dev/null | grep -q .; then
     echo "   (Found frontier files in context/plans/ — move them to context/sites/)" >&2
   fi
@@ -345,63 +137,31 @@ fi
 if [[ ${#CANDIDATES[@]} -eq 1 ]]; then
   FRONTIER_FILE="${CANDIDATES[0]}"
 else
-  # Multiple candidates — rank by status
-  # Priority: has active worktree > has incomplete tasks > alphabetical
-  BEST_SCORE=0
+  # Multiple candidates — list them with task counts for user selection
+  echo ""
+  echo "📋 Multiple build sites found:"
+  echo ""
+  IDX=1
   for f in "${CANDIDATES[@]}"; do
-    score=1  # base score
-
-    # Check for active worktree (in-progress = highest priority)
-    bn="$(basename "$f" .md)"
-    # Derive worktree name the same way the picker does
-    wt_name=$(echo "$bn" | sed -E 's/^(plan-|feature-frontier-|feature-|build-site-)//' | sed -E 's/-?frontier-?//' | sed -E 's/^-|-$//g')
-    [[ -z "$wt_name" ]] && wt_name="build"
-    wt_path="${PROJECT_ROOT}/../${PROJECT_NAME}-blueprint-${wt_name}"
-
-    if [[ -d "$wt_path" ]]; then
-      if [[ -f "$wt_path/.claude/ralph-loop.local.md" ]]; then
-        score=3  # active worktree with ralph loop
-      else
-        score=2  # worktree exists (maybe stale, but likely relevant)
-      fi
-    fi
-
-    # Check if frontier has incomplete tasks (prefer non-done frontiers)
-    if [[ $score -lt 2 ]]; then
-      task_count=$(grep -cE '\|\s*T-([A-Za-z0-9]+-)*[0-9]+\s*\|' "$f" 2>/dev/null || echo 0)
-      if [[ $task_count -gt 0 ]]; then
-        # Check if all tasks are done
-        done_count=0
-        if [[ -d "context/impl" ]]; then
-          for task_id in $(grep -oE 'T-([A-Za-z0-9]+-)*[0-9]+' "$f" 2>/dev/null | sort -u); do
-            if grep -rlq "$task_id.*DONE\|DONE.*$task_id" context/impl/ 2>/dev/null; then
-              done_count=$((done_count + 1))
-            fi
-          done
-        fi
-        if [[ $done_count -lt $task_count ]]; then
-          score=2  # has incomplete tasks
-        fi
-      fi
-    fi
-
-    if [[ $score -gt $BEST_SCORE ]]; then
-      BEST_SCORE=$score
-      FRONTIER_FILE="$f"
-    fi
-  done
-
-  # List all candidates so Claude has visibility
-  echo "📋 Found ${#CANDIDATES[@]} frontiers:" >&2
-  for f in "${CANDIDATES[@]}"; do
-    marker="  "
-    [[ "$f" == "$FRONTIER_FILE" ]] && marker="→ "
     task_count=$(grep -cE '\|\s*T-([A-Za-z0-9]+-)*[0-9]+\s*\|' "$f" 2>/dev/null || echo "?")
-    echo "  ${marker}$(basename "$f") (${task_count} tasks)" >&2
+    done_count=0
+    if [[ -d "context/impl" ]]; then
+      for task_id in $(grep -oE 'T-([A-Za-z0-9]+-)*[0-9]+' "$f" 2>/dev/null | sort -u); do
+        if grep -rlq "$task_id.*DONE\|DONE.*$task_id" context/impl/ 2>/dev/null; then
+          done_count=$((done_count + 1))
+        fi
+      done
+    fi
+    echo "  ${IDX}. $(basename "$f") — ${done_count}/${task_count} tasks done"
+    IDX=$((IDX + 1))
   done
+  echo ""
+  echo "BLUEPRINT_SITE_SELECTION_REQUIRED=true"
+  echo "BLUEPRINT_SITE_CANDIDATES=${CANDIDATES[*]}"
+  exit 0
 fi
 
-echo "📋 Frontier: $FRONTIER_FILE"
+echo "📋 Build site: $FRONTIER_FILE"
 
 # ─── Auto-archive previous cycle ────────────────────────────────────────────
 
@@ -430,9 +190,6 @@ if [[ -d "context/impl" ]]; then
   fi
 fi
 
-# Remove old ralph state
-rm -f .claude/ralph-loop.local.md
-
 # ─── Discover specs and refs ────────────────────────────────────────────────
 
 SPEC_FILES=()
@@ -449,30 +206,45 @@ for f in "${SPEC_FILES[@]+"${SPEC_FILES[@]}"}"; do
   SPEC_LISTING="${SPEC_LISTING}\n- \`$f\`"
 done
 
-# ─── Configure Codex MCP if peer review ─────────────────────────────────────
+# ─── Configure Codex peer review ────────────────────────────────────────────
+# Primary path: Codex CLI delegation via codex-review.sh (no MCP overhead).
+# Legacy fallback: Codex as MCP server when CLI delegation is unavailable.
+
+CODEX_CLI_REVIEW=false
 
 if [[ ""$PEER_REVIEW"" == "true" ]]; then
-  MCP_FILE=".mcp.json"
-  NEEDS_MCP=false
+  # Try primary path: source codex-review.sh for bp_codex_review function
+  if [[ -f "$SCRIPT_DIR/codex-review.sh" ]]; then
+    source "$SCRIPT_DIR/codex-review.sh"
+    if [[ "${codex_available:-false}" == "true" ]]; then
+      CODEX_CLI_REVIEW=true
+      echo "📡 Codex CLI review enabled (model: $(bp_config_get codex_model o4-mini))"
+    fi
+  fi
 
-  if [[ ! -f "$MCP_FILE" ]]; then
-    NEEDS_MCP=true
-  elif ! python3 -c "
+  # Legacy fallback: configure Codex as MCP server
+  if [[ "$CODEX_CLI_REVIEW" == "false" ]]; then
+    MCP_FILE=".mcp.json"
+    NEEDS_MCP=false
+
+    if [[ ! -f "$MCP_FILE" ]]; then
+      NEEDS_MCP=true
+    elif ! python3 -c "
 import json, sys
 with open('$MCP_FILE') as f:
     d = json.load(f)
 sys.exit(0 if 'codex-reviewer' in d.get('mcpServers', {}) else 1)
 " 2>/dev/null; then
-    NEEDS_MCP=true
-  fi
-
-  if [[ "$NEEDS_MCP" == "true" ]]; then
-    if ! command -v codex &>/dev/null; then
-      echo "❌ Codex CLI not found. Install: npm install -g @openai/codex" >&2
-      exit 1
+      NEEDS_MCP=true
     fi
-    if [[ -f "$MCP_FILE" ]]; then
-      python3 -c "
+
+    if [[ "$NEEDS_MCP" == "true" ]]; then
+      if ! command -v codex &>/dev/null; then
+        echo "❌ Codex CLI not found. Install: npm install -g @openai/codex" >&2
+        exit 1
+      fi
+      if [[ -f "$MCP_FILE" ]]; then
+        python3 -c "
 import json
 with open('$MCP_FILE') as f:
     d = json.load(f)
@@ -483,15 +255,16 @@ d.setdefault('mcpServers', {})['codex-reviewer'] = {
 with open('$MCP_FILE', 'w') as f:
     json.dump(d, f, indent=2)
 "
-    else
-      python3 -c "
+      else
+        python3 -c "
 import json
 d = {'mcpServers': {'codex-reviewer': {'command': 'codex', 'args': ['mcp-server', '-c', 'model=\"$CODEX_MODEL\"']}}}
 with open('$MCP_FILE', 'w') as f:
     json.dump(d, f, indent=2)
 "
+      fi
+      echo "📡 Configured Codex ($CODEX_MODEL) as MCP peer reviewer (legacy fallback)"
     fi
-    echo "📡 Configured Codex ($CODEX_MODEL) as MCP peer reviewer"
   fi
 fi
 
@@ -499,8 +272,27 @@ fi
 
 PEER_REVIEW_SECTION=""
 if [[ ""$PEER_REVIEW"" == "true" ]]; then
-  PEER_REVIEW_SECTION="
+  if [[ "$CODEX_CLI_REVIEW" == "true" ]]; then
+    PEER_REVIEW_SECTION="
 ## Peer Review (every ${REVIEW_INTERVAL}th iteration)
+
+Check the iteration number from the Ralph system message.
+If iteration % $REVIEW_INTERVAL == 0, this is a REVIEW iteration:
+
+1. Run the Codex CLI review:
+   \`\`\`bash
+   source scripts/codex-review.sh && bp_codex_review --base main
+   \`\`\`
+   This sends the diff to Codex for adversarial review and writes parsed findings
+   to \`context/impl/impl-review-findings.md\` automatically.
+
+2. Read the findings output and fix all P0 (critical) and P1 (high) findings immediately
+3. Mark fixed findings as FIXED in the findings file
+
+Completion requires: no P0/P1 findings remain unfixed."
+  else
+    PEER_REVIEW_SECTION="
+## Peer Review (every ${REVIEW_INTERVAL}th iteration) — MCP Legacy
 
 Check the iteration number from the Ralph system message.
 If iteration % $REVIEW_INTERVAL == 0, this is a REVIEW iteration:
@@ -520,6 +312,7 @@ If iteration % $REVIEW_INTERVAL == 0, this is a REVIEW iteration:
 5. Mark fixed findings as FIXED
 
 Completion requires: no CRITICAL/HIGH findings remain unfixed."
+  fi
 fi
 
 RALPH_PROMPT="# Blueprint Build
@@ -593,12 +386,25 @@ All tasks across all tiers DONE + build passes + tests pass?
 
 Otherwise → next iteration.
 
+## CRITICAL: Do NOT falsely mark tasks as DONE
+
+**NEVER mark a task DONE because 'existing code already handles this'.**
+A task is DONE only when you have:
+1. Written or modified code specifically for this task's acceptance criteria
+2. Verified EACH acceptance criterion individually (not 'it looks like it works')
+3. Written or run tests that prove the criteria are met
+
+If existing code partially covers a requirement, implement the MISSING parts.
+If it fully covers every criterion, write a test proving it and document exactly
+which existing code satisfies which criterion — with file paths and line numbers.
+
 ## Rules
 1. NEVER output completion promise unless ALL tasks are genuinely DONE
 2. ONE task per iteration
 3. Stuck 2+ iterations → dead end, move on
 4. Re-read build site and tracking every iteration
-5. Commit after each task"
+5. Commit after each task
+6. NEVER skip implementation because code 'looks related'"
 
 # ─── Write Ralph Loop state ─────────────────────────────────────────────────
 
@@ -622,7 +428,7 @@ EOF
 cat <<EOF
 🔄 Blueprint Build — Loop activated!
 
-Frontier: $FRONTIER_FILE
+Build site: $FRONTIER_FILE
 Specs: ${#SPEC_FILES[@]} found
 $(if [[ -n "$FILTER" ]]; then echo "Filter: $FILTER"; fi)
 $(if [[ ""$PEER_REVIEW"" == "true" ]]; then echo "Peer reviewer: Codex ($CODEX_MODEL) every ${REVIEW_INTERVAL} iterations"; fi)
