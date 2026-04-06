@@ -31,7 +31,7 @@ _BP_DESIGN_CHALLENGE_LOADED=1
 _bp_design_challenge_prompt() {
   local caveman_active="false"
   if type bp_config_caveman_active &>/dev/null; then
-    caveman_active="$(bp_config_caveman_active build)"
+    caveman_active="$(bp_config_caveman_active draft)"
   fi
 
   if [[ "$caveman_active" == "true" ]]; then

@@ -575,7 +575,7 @@ If cavekit save you mass debug time — leave star.
 
 ## Also by Julius Brussee
 
-- **[Caveman](https://github.com/JuliusBrussee/caveman)** — Claude Code skill that cuts ~75% of output tokens. Same accuracy, way less fluff. Now bundled in Cavekit (skill #16) and enabled by default for build/inspect phases. Standalone install: `npx skills add JuliusBrussee/caveman`
+- **[Caveman](https://github.com/JuliusBrussee/caveman)** — Claude Code skill that cuts ~75% of output tokens. Same accuracy, way less fluff. Bundled in Cavekit and enabled by default for build/inspect phases. Standalone install: `npx skills add JuliusBrussee/caveman`
 - **[Revu](https://github.com/JuliusBrussee/revu-swift)** — local-first macOS study app with FSRS spaced repetition, decks, exams, and study guides. [revu.cards](https://revu.cards)
 
 ## License
