@@ -6,7 +6,7 @@ Detecting whether agent iterations are converging toward a solution or hitting a
 
 ## 1. Overview
 
-Convergence is the central feedback signal in Blueprint. It tells you whether the iteration loop is working -- whether the agent is approaching a stable solution that satisfies all blueprints and validation gates.
+Convergence is the central feedback signal in Cavekit. It tells you whether the iteration loop is working -- whether the agent is approaching a stable solution that satisfies all kits and validation gates.
 
 > **Convergence indicates the agent's output is settling into a stable state. You don't need a zero-diff — you need the remaining modifications to be inconsequential.**
 
@@ -143,7 +143,7 @@ Healthy convergence shows:
 
 ### Method 3: Task Completion Rate
 
-Track completion of blueprint requirements:
+Track completion of cavekit requirements:
 
 ```markdown
 Iteration 1: 3/20 requirements satisfied (15%)
@@ -177,7 +177,7 @@ When diff volume is not declining from one iteration to the next, the loop itsel
 
 **Symptom:** The agent takes a different approach on each pass. Code alternates between competing implementations.
 
-**Diagnosis:** The blueprint leaves room for multiple valid interpretations. Without a single unambiguous reading, the agent picks a different path every time.
+**Diagnosis:** The cavekit leaves room for multiple valid interpretations. Without a single unambiguous reading, the agent picks a different path every time.
 
 **Examples:**
 - "Search should be intuitive" — What does intuitive mean? Autocomplete? Faceted filters? Fuzzy matching?
@@ -234,7 +234,7 @@ R1: Order placement
 
 **Fix:**
 1. Review file ownership tables — confirm no file is written by more than one agent
-2. Audit blueprints for contradictions — reconcile any conflicting requirements
+2. Audit kits for contradictions — reconcile any conflicting requirements
 3. Verify task ordering — ensure dependencies flow in one direction
 4. When running agent teams, dispatch subagents with `isolation: "worktree"` via the Agent tool
 
@@ -252,18 +252,18 @@ R1: Order placement
 **Fix:** Identify what is missing and choose one of:
 - Provision or install the dependency
 - Provide a stub or mock that satisfies the interface
-- Narrow the blueprint scope to exclude the dependency for now
+- Narrow the cavekit scope to exclude the dependency for now
 - Record the dependency as a blocker in the implementation tracker
 
 ---
 
-## 6. Non-Convergence is a Signal to Improve Blueprints
+## 6. Non-Convergence is a Signal to Improve Kits
 
 This is a critical principle:
 
-> **When the loop isn't stabilizing, adding more iterations won't help — the problem is in the blueprints, validation, or coordination.**
+> **When the loop isn't stabilizing, adding more iterations won't help — the problem is in the kits, validation, or coordination.**
 
-Continuing to iterate on a non-converging system is wasted effort. The agent will repeat the same missteps because the root cause lives outside the loop — in ambiguous blueprints, missing validation, or unresolved conflicts between agents.
+Continuing to iterate on a non-converging system is wasted effort. The agent will repeat the same missteps because the root cause lives outside the loop — in ambiguous kits, missing validation, or unresolved conflicts between agents.
 
 ### Decision Tree
 
@@ -274,7 +274,7 @@ Are changes decreasing iteration-over-iteration?
   |
   NO  -> Stop. Diagnose the cause:
          |
-         +-> Are blueprints ambiguous? -> Fix blueprints, restart
+         +-> Are kits ambiguous? -> Fix kits, restart
          |
          +-> Is validation weak? -> Add tests/gates, restart
          |
@@ -325,7 +325,7 @@ Test pass rate is the most reliable convergence signal because it is:
 
 ## 8. Forward Progress Metrics
 
-For large projects with many blueprint requirements, track the percentage of requirements with passing tests.
+For large projects with many cavekit requirements, track the percentage of requirements with passing tests.
 
 ### Forward Progress Calculation
 
@@ -354,7 +354,7 @@ Forward Progress = (Requirements with ALL acceptance criteria passing)
 
 - Track per domain to identify which areas need more iteration
 - 100% in a domain means that domain has converged
-- Domains below 50% may have blueprint or validation issues
+- Domains below 50% may have cavekit or validation issues
 - Overall forward progress should increase monotonically
 - Plateaus indicate ceiling -- investigate the blocked domains
 
@@ -408,7 +408,7 @@ While convergence is the true "done" signal, practical iteration limits prevent 
 If the iteration limit is reached and the system has not converged:
 1. Stop iterating
 2. Analyze the convergence metrics
-3. Diagnose the cause (fuzzy blueprints, weak validation, fighting agents, missing deps)
+3. Diagnose the cause (fuzzy kits, weak validation, fighting agents, missing deps)
 4. Fix the root cause
 5. Reset the iteration counter
 6. Resume iterating
@@ -453,13 +453,13 @@ If the team as a whole is not converging despite individual teammates converging
 | Healthy convergence | Dropping exponentially | Climbing toward 100% | Stay the course — nearly finished |
 | Slow convergence | Declining linearly | Rising gradually | More passes required, but progress is real |
 | Ceiling | Low and flat | Stuck below full pass | Diagnose the blocker |
-| Non-convergence | Flat or growing | Fluctuating or stalled | Halt iterations, revise blueprints or validation |
+| Non-convergence | Flat or growing | Fluctuating or stalled | Halt iterations, revise kits or validation |
 | Divergence | Rising | Falling | Stop immediately — fundamental problem |
 
 ### The Cardinal Rules
 
 1. **Convergence — not elapsed time or iteration count — determines when work is complete.**
-2. **A non-converging loop means the blueprints, validation, or coordination need attention — not more passes.**
+2. **A non-converging loop means the kits, validation, or coordination need attention — not more passes.**
 3. **Test pass rate is the single most dependable indicator of convergence.**
 4. **Small diffs can mean success or stagnation — always check whether tests are green before concluding.**
-5. **On larger projects, measure forward progress as the share of blueprint requirements whose acceptance criteria all pass.**
+5. **On larger projects, measure forward progress as the share of cavekit requirements whose acceptance criteria all pass.**

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/julb/blueprint-monitor/internal/site"
+	"github.com/JuliusBrussee/cavekit/internal/site"
 )
 
 // SitePicker shows available sites for selection.

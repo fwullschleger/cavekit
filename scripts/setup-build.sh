@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Blueprint Build Setup Script
+# Cavekit Build Setup Script
 # Archives old cycle, reads build site, starts Ralph Loop.
 # Optionally configures Codex MCP for peer review.
 
@@ -11,14 +11,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [[ -f "$SCRIPT_DIR/bp-config.sh" ]]; then
   source "$SCRIPT_DIR/bp-config.sh"
 else
-  bp_config_summary_line() { echo "Blueprint preset: quality (reasoning=opus, execution=opus, exploration=sonnet)"; }
+  bp_config_summary_line() { echo "Cavekit preset: quality (reasoning=opus, execution=opus, exploration=sonnet)"; }
   bp_config_model() { echo "opus"; }
 fi
 
 FILTER=""
 PEER_REVIEW=false
 MAX_ITERATIONS=20
-COMPLETION_PROMISE="BLUEPRINT COMPLETE"
+COMPLETION_PROMISE="CAVEKIT COMPLETE"
 CODEX_MODEL="gpt-5.4"
 REVIEW_INTERVAL=2
 EXPLICIT_FILE=""
@@ -27,30 +27,30 @@ while [[ $# -gt 0 ]]; do
   case $1 in
     -h|--help)
       cat << 'HELP_EOF'
-Blueprint Build — Run the implementation loop
+Cavekit Build — Run the implementation loop
 
 USAGE:
-  /blueprint build [FILE] [OPTIONS]
+  /cavekit build [FILE] [OPTIONS]
 
 ARGUMENTS:
   FILE                           Path to build site file (optional)
                                  Accepts @path or plain path (@ prefix is stripped)
 
 OPTIONS:
-  --filter <pattern>             Scope to blueprints/build site matching pattern
+  --filter <pattern>             Scope to kits/build site matching pattern
   --peer-review                  Add Codex (GPT-5.4) peer review
   --codex-model <model>          Codex model (default: gpt-5.4)
   --review-interval <n>          Review every Nth iteration (default: 2)
   --max-iterations <n>           Max iterations (default: 20)
-  --completion-promise '<text>'  Completion phrase (default: "BLUEPRINT COMPLETE")
+  --completion-promise '<text>'  Completion phrase (default: "CAVEKIT COMPLETE")
   -h, --help                     Show this help
 
 EXAMPLES:
-  /blueprint build
-  /blueprint build context/plans/build-site.md
-  /blueprint build @context/sites/build-site-v2.md
-  /blueprint build --filter v2
-  /blueprint build --peer-review --max-iterations 30
+  /cavekit build
+  /cavekit build context/plans/build-site.md
+  /cavekit build @context/sites/build-site-v2.md
+  /cavekit build --filter v2
+  /cavekit build --peer-review --max-iterations 30
 HELP_EOF
       exit 0
       ;;
@@ -235,8 +235,8 @@ else
     IDX=$((IDX + 1))
   done
   echo ""
-  echo "BLUEPRINT_SITE_SELECTION_REQUIRED=true"
-  echo "BLUEPRINT_SITE_CANDIDATES=${CANDIDATES[*]}"
+  echo "CAVEKIT_SITE_SELECTION_REQUIRED=true"
+  echo "CAVEKIT_SITE_CANDIDATES=${CANDIDATES[*]}"
   exit 0
 fi
 
@@ -318,12 +318,12 @@ fi
 # ─── Discover specs and refs ────────────────────────────────────────────────
 
 SPEC_FILES=()
-if [[ -d "context/blueprints" ]]; then
+if [[ -d "context/kits" ]]; then
   while IFS= read -r -d '' f; do
     [[ "$(basename "$f")" == "CLAUDE.md" ]] && continue
     if [[ -n "$FILTER" ]] && [[ "$f" != *"$FILTER"* ]]; then continue; fi
     SPEC_FILES+=("$f")
-  done < <(find context/blueprints -name "*.md" -type f -print0 2>/dev/null | sort -z)
+  done < <(find context/kits -name "*.md" -type f -print0 2>/dev/null | sort -z)
 fi
 
 SPEC_LISTING=""
@@ -440,11 +440,11 @@ Completion requires: no CRITICAL/HIGH findings remain unfixed."
   fi
 fi
 
-RALPH_PROMPT="# Blueprint Build
+RALPH_PROMPT="# Cavekit Build
 
 ## Your Role
 You are implementing tasks from a build site. Each iteration: find the next
-unblocked task, read its blueprint, implement it, validate, commit.
+unblocked task, read its cavekit, implement it, validate, commit.
 
 ## Read These First (every iteration)
 1. \`context/impl/loop-log.md\` — your iteration history (if exists)
@@ -453,7 +453,7 @@ unblocked task, read its blueprint, implement it, validate, commit.
    An impl file is scoped if it contains \`Build site: $FRONTIER_FILE\` (or the matching basename).
    Ignore impl files that declare a different build site. If no scoped files exist, read all impl files.
 
-## Blueprints (read when implementing a specific requirement)
+## Kits (read when implementing a specific requirement)
 $(echo -e "$SPEC_LISTING")
 "$PEER_REVIEW"_SECTION
 ## Each Iteration
@@ -467,7 +467,7 @@ $(echo -e "$SPEC_LISTING")
 - Among equals, pick the one that unblocks the most downstream work
 
 ### 3. Implement
-- Read the task's blueprint requirement and acceptance criteria
+- Read the task's cavekit requirement and acceptance criteria
 - Implement it, following existing codebase patterns
 - One task per iteration
 
@@ -511,7 +511,7 @@ Append to \`context/impl/loop-log.md\` (create if missing):
 \`\`\`
 
 ### 6. Commit
-Descriptive message with task ID and blueprint requirement. Do NOT push.
+Descriptive message with task ID and cavekit requirement. Do NOT push.
 
 ### 7. Done?
 All tasks across all tiers DONE + build passes + tests pass?
@@ -547,7 +547,7 @@ cat > .claude/ralph-loop.local.md <<EOF
 ---
 active: true
 iteration: 1
-session_id: ${CLAUDE_CODE_SESSION_ID:-$(python3 -c "import uuid; print(uuid.uuid4())" 2>/dev/null || echo "blueprint-$$-$(date +%s)")}
+session_id: ${CLAUDE_CODE_SESSION_ID:-$(python3 -c "import uuid; print(uuid.uuid4())" 2>/dev/null || echo "cavekit-$$-$(date +%s)")}
 max_iterations: $MAX_ITERATIONS
 completion_promise: "$COMPLETION_PROMISE"
 started_at: "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -559,7 +559,7 @@ EOF
 # ─── Output ─────────────────────────────────────────────────────────────────
 
 cat <<EOF
-🔄 Blueprint Build — Loop activated!
+🔄 Cavekit Build — Loop activated!
 
 Build site: $FRONTIER_FILE
 Specs: ${#SPEC_FILES[@]} found
@@ -568,7 +568,7 @@ $(if [[ ""$PEER_REVIEW"" == "true" ]]; then echo "Peer reviewer: Codex ($CODEX_M
 $(if [[ $ARCHIVE_COUNT -gt 0 ]]; then echo "Archived: $ARCHIVE_COUNT files from previous cycle"; fi)
 Max iterations: $MAX_ITERATIONS
 
-Each iteration: build site → blueprint → implement → validate → commit
+Each iteration: build site → cavekit → implement → validate → commit
 
 ═══════════════════════════════════════════════════════════════════════
 COMPLETION: <promise>$COMPLETION_PROMISE</promise>

@@ -1,14 +1,14 @@
 ---
 name: bp-architect
-description: "Generate a build site from blueprints — the task dependency graph that drives building"
+description: "Generate a build site from kits — the task dependency graph that drives building"
 argument-hint: "[--filter PATTERN]"
 ---
 
-# Blueprint Architect — Generate Build Site
+# Cavekit Architect — Generate Build Site
 
-This is the second phase of Blueprint. You read blueprints and generate a build site — a dependency-ordered task graph that tells the builder what to build and in what order.
+This is the second phase of Cavekit. You read kits and generate a build site — a dependency-ordered task graph that tells the builder what to build and in what order.
 
-No domain plans. No file ownership. No time budgets. Just: tasks, what blueprint requirement they implement, and what blocks what.
+No domain plans. No file ownership. No time budgets. Just: tasks, what cavekit requirement they implement, and what blocks what.
 
 ## Step 0: Resolve Execution Profile
 
@@ -19,17 +19,17 @@ Before generating the site:
 
 Do NOT rely on the agent frontmatter model. Dispatch the actual site-generation work to a `bp:architect` subagent with `model: "{REASONING_MODEL}"`.
 
-## Step 1: Validate Blueprints Exist
+## Step 1: Validate Kits Exist
 
-Check `context/blueprints/` for blueprint files. If none found, tell the user:
-> No blueprints found. Run `/bp:draft` first.
+Check `context/kits/` for cavekit files. If none found, tell the user:
+> No kits found. Run `/bp:draft` first.
 
-If `--filter` is set, only include blueprints matching the filter pattern.
+If `--filter` is set, only include kits matching the filter pattern.
 
-## Step 2: Read All Blueprints
+## Step 2: Read All Kits
 
-1. Read `context/blueprints/blueprint-overview.md` if it exists (for dependency graph)
-2. Read all `context/blueprints/blueprint-*.md` files (apply filter if set)
+1. Read `context/kits/cavekit-overview.md` if it exists (for dependency graph)
+2. Read all `context/kits/cavekit-*.md` files (apply filter if set)
 3. Catalog every requirement (R-numbered) with its acceptance criteria and dependencies
 4. If `DESIGN.md` exists at project root, read it — note all design tokens and component patterns for use when decomposing UI requirements into tasks
 
@@ -47,7 +47,7 @@ Use T-numbered task IDs (T-001, T-002, ...) across all domains.
 ## Step 4: Build Dependency Graph
 
 For each task, determine what it's blocked by:
-- Explicit dependencies from blueprint (R2 depends on R1)
+- Explicit dependencies from cavekit (R2 depends on R1)
 - Implicit dependencies (can't test an API endpoint before the data model exists)
 - Cross-domain dependencies (notifications depend on the events they notify about)
 
@@ -61,7 +61,7 @@ Organize tasks into tiers:
 
 Create the `context/plans/` directory if it doesn't exist.
 
-Dispatch a `bp:architect` subagent with `model: "{REASONING_MODEL}"` to produce the build-site contents from the blueprints and dependencies you cataloged above, then write the returned site to disk.
+Dispatch a `bp:architect` subagent with `model: "{REASONING_MODEL}"` to produce the build-site contents from the kits and dependencies you cataloged above, then write the returned site to disk.
 
 Write `context/plans/build-site.md`:
 
@@ -73,24 +73,24 @@ last_edited: "{CURRENT_DATE_UTC}"
 
 # Build Site
 
-{Total tasks} tasks across {total tiers} tiers from {blueprint count} blueprints.
+{Total tasks} tasks across {total tiers} tiers from {cavekit count} kits.
 
 ---
 
 ## Tier 0 — No Dependencies (Start Here)
 
-| Task | Title | Blueprint | Requirement | Effort |
+| Task | Title | Cavekit | Requirement | Effort |
 |------|-------|------|------------|--------|
-| T-001 | {title} | blueprint-{domain}.md | R1 | {S/M/L} |
-| T-002 | {title} | blueprint-{domain}.md | R1 | {S/M/L} |
+| T-001 | {title} | cavekit-{domain}.md | R1 | {S/M/L} |
+| T-002 | {title} | cavekit-{domain}.md | R1 | {S/M/L} |
 
 ---
 
 ## Tier 1 — Depends on Tier 0
 
-| Task | Title | Blueprint | Requirement | blockedBy | Effort |
+| Task | Title | Cavekit | Requirement | blockedBy | Effort |
 |------|-------|------|------------|-----------|--------|
-| T-003 | {title} | blueprint-{domain}.md | R2 | T-001 | {S/M/L} |
+| T-003 | {title} | cavekit-{domain}.md | R2 | T-001 | {S/M/L} |
 
 ---
 
@@ -111,14 +111,14 @@ last_edited: "{CURRENT_DATE_UTC}"
 
 ## Coverage Matrix
 
-Every acceptance criterion from every blueprint requirement MUST appear below with its assigned task(s). If any criterion has no task, the site is incomplete.
+Every acceptance criterion from every cavekit requirement MUST appear below with its assigned task(s). If any criterion has no task, the site is incomplete.
 
-| Blueprint | Req | Criterion | Task(s) | Status |
+| Cavekit | Req | Criterion | Task(s) | Status |
 |-----------|-----|-----------|---------|--------|
-| blueprint-{domain}.md | R1 | {criterion text, abbreviated} | T-001 | COVERED |
-| blueprint-{domain}.md | R1 | {criterion text, abbreviated} | T-001, T-002 | COVERED |
-| blueprint-{domain}.md | R2 | {criterion text, abbreviated} | T-003 | COVERED |
-| blueprint-{domain}.md | R2 | {criterion text, abbreviated} | — | GAP |
+| cavekit-{domain}.md | R1 | {criterion text, abbreviated} | T-001 | COVERED |
+| cavekit-{domain}.md | R1 | {criterion text, abbreviated} | T-001, T-002 | COVERED |
+| cavekit-{domain}.md | R2 | {criterion text, abbreviated} | T-003 | COVERED |
+| cavekit-{domain}.md | R2 | {criterion text, abbreviated} | — | GAP |
 
 **Coverage: {covered}/{total} criteria ({percentage}%)**
 
@@ -158,7 +158,7 @@ Rules for the graph:
 ```markdown
 ## Architect Report
 
-### Blueprints Read: {count}
+### Kits Read: {count}
 ### Tasks Generated: {count}
 ### Tiers: {count}
 ### Tier 0 Tasks: {count} (can run in parallel immediately)
@@ -170,7 +170,7 @@ Run `/bp:build --peer-review` to add Codex review.
 
 ### Rules
 
-- Every blueprint requirement MUST map to at least one task
+- Every cavekit requirement MUST map to at least one task
 - Every ACCEPTANCE CRITERION within every requirement MUST map to at least one task — requirement-level coverage is not sufficient. A requirement with 5 acceptance criteria needs tasks that collectively cover all 5, not just 1.
 - The Coverage Matrix in the build site must show 100% COVERED status. If any row shows GAP, add tasks before finishing.
 - Tasks should be small — prefer M over XL

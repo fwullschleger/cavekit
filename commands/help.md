@@ -1,9 +1,9 @@
 ---
 name: bp-help
-description: Show Blueprint commands and usage
+description: Show Cavekit commands and usage
 ---
 
-# Blueprint
+# Cavekit
 
 ## The Workflow
 
@@ -11,7 +11,7 @@ description: Show Blueprint commands and usage
 /bp:init        →  bootstrap context hierarchy (optional, /bp:draft does this too)
 /bp:design      →  create or update DESIGN.md (the LOOK) — import, extract, or design interactively
 /bp:research    →  deep multi-agent research (standalone, or integrated into /bp:draft)
-/bp:draft       →  write blueprints (the WHAT) — offers research if warranted, references DESIGN.md
+/bp:draft       →  write kits (the WHAT) — offers research if warranted, references DESIGN.md
 /bp:architect   →  generate site (the ORDER) — includes design refs for UI tasks
 /bp:build       →  ralph loop (the BUILD) — task builders read DESIGN.md for UI work
 /bp:inspect     →  gap analysis + peer review + design compliance (the CHECK)
@@ -46,7 +46,7 @@ Built-in presets:
 | `balanced` | `opus` | `sonnet` | `haiku` |
 | `fast` | `sonnet` | `sonnet` | `haiku` |
 
-Precedence: `.blueprint/config` overrides `~/.blueprint/config`, which overrides the built-in default (`quality`).
+Precedence: `.cavekit/config` overrides `~/.cavekit/config`, which overrides the built-in default (`quality`).
 
 ## Commands
 
@@ -56,7 +56,7 @@ Precedence: `.blueprint/config` overrides `~/.blueprint/config`, which overrides
 /bp:init                         # create all context dirs, CLAUDE.md files, index files
 ```
 
-Creates the full context hierarchy for a Blueprint project. Idempotent — only creates what's missing. Detects legacy `context/sites/` layout and offers migration to `context/plans/`.
+Creates the full context hierarchy for a Cavekit project. Idempotent — only creates what's missing. Detects legacy `context/sites/` layout and offers migration to `context/plans/`.
 
 ### `/bp:research` — Deep Research
 
@@ -85,25 +85,25 @@ Also integrated into `/bp:draft` — when the draft phase detects a project that
 
 Creates the project's visual design system document following the 9-section Google Stitch format. DESIGN.md becomes the authoritative visual reference that all agents consult when building UI.
 
-### `/bp:draft` — Write Blueprints
+### `/bp:draft` — Write Kits
 
 ```bash
 /bp:draft                        # interactive — asks what to build
 /bp:draft context/refs/          # from reference materials (PRDs, docs)
 /bp:draft --from-code            # from existing codebase (brownfield)
-/bp:draft --filter v2            # only generate v2 blueprints
+/bp:draft --filter v2            # only generate v2 kits
 ```
 
-Decomposes your project into domains, writes `context/blueprints/blueprint-{domain}.md` files with R-numbered requirements and testable acceptance criteria.
+Decomposes your project into domains, writes `context/kits/cavekit-{domain}.md` files with R-numbered requirements and testable acceptance criteria.
 
 ### `/bp:architect` — Generate Site
 
 ```bash
-/bp:architect                    # generates site from all blueprints
-/bp:architect --filter v2        # only v2 blueprints
+/bp:architect                    # generates site from all kits
+/bp:architect --filter v2        # only v2 kits
 ```
 
-Reads blueprints, decomposes requirements into tasks, organizes into dependency tiers. Writes `context/plans/build-site.md`. No domain plans — just tasks and dependencies.
+Reads kits, decomposes requirements into tasks, organizes into dependency tiers. Writes `context/plans/build-site.md`. No domain plans — just tasks and dependencies.
 
 ### `/bp:build` — Run the Loop
 
@@ -127,7 +127,7 @@ With `--peer-review`: alternates build and review iterations, calling Codex via 
 ```
 
 Runs after build completes. Does two things:
-1. **Gap analysis** — compares built code against every blueprint requirement and acceptance criterion
+1. **Gap analysis** — compares built code against every cavekit requirement and acceptance criterion
 2. **Peer review** — finds bugs, security issues, performance problems, quality gaps
 
 Produces a verdict: APPROVE / REVISE / REJECT with prioritized findings.
@@ -141,7 +141,7 @@ Produces a verdict: APPROVE / REVISE / REJECT with prioritized findings.
 /bp:config preset fast --global
 ```
 
-Shows or updates the active Blueprint execution preset. Presets map three task buckets:
+Shows or updates the active Cavekit execution preset. Presets map three task buckets:
 `reasoning` for draft/architect/inspect-style work, `execution` for build/task-builder work, and `exploration` for research and codebase scanning helpers.
 
 ### `/bp:progress` — Check Progress
@@ -160,7 +160,7 @@ Shows tasks done/ready/blocked, progress bar, current tier, and next tasks.
 /bp:codex-review --base v1.0     # review diff against a specific ref
 ```
 
-Sends the current diff to Codex for adversarial review. Outputs findings in Blueprint format and appends them to `context/impl/impl-review-findings.md`. Requires Codex CLI to be installed.
+Sends the current diff to Codex for adversarial review. Outputs findings in Cavekit format and appends them to `context/impl/impl-review-findings.md`. Requires Codex CLI to be installed.
 
 ### Maintenance (optional)
 
@@ -168,7 +168,7 @@ Sends the current diff to Codex for adversarial review. Outputs findings in Blue
 |---------|------|
 | `/bp:codex-review` | On-demand Codex adversarial review of current diff |
 | `/bp:gap-analysis` | After a loop — compare built vs intended |
-| `/bp:revise` | After manual code fixes — trace back to blueprints |
+| `/bp:revise` | After manual code fixes — trace back to kits |
 | `/bp:compact-specs` | When impl tracking files exceed ~500 lines |
 | `/bp:archive-loop` | Manually archive a loop cycle (build does this automatically) |
 | `/bp:next-session` | Generate a handoff document for next session |
@@ -179,14 +179,14 @@ These still work but are superseded by the three main commands:
 
 | Command | Replaced by |
 |---------|-------------|
-| `/blueprint init` | `/bp:init` (or `/bp:draft` creates directories automatically) |
-| `/blueprint spec-from-refs` | `/bp:draft context/refs/` |
-| `/blueprint spec-from-code` | `/bp:draft --from-code` |
-| `/blueprint plan-from-specs` | `/bp:architect` (generates site directly, no domain plans) |
-| `/blueprint implement` | `/bp:build` (one task at a time vs full loop) |
-| `/blueprint spec-loop` | `/bp:build` |
-| `/blueprint peer-review-loop` | `/bp:build --peer-review` |
-| `/blueprint quick` | `/bp:quick` (end-to-end with no stops) |
+| `/cavekit init` | `/bp:init` (or `/bp:draft` creates directories automatically) |
+| `/cavekit spec-from-refs` | `/bp:draft context/refs/` |
+| `/cavekit spec-from-code` | `/bp:draft --from-code` |
+| `/cavekit plan-from-specs` | `/bp:architect` (generates site directly, no domain plans) |
+| `/cavekit implement` | `/bp:build` (one task at a time vs full loop) |
+| `/cavekit spec-loop` | `/bp:build` |
+| `/cavekit peer-review-loop` | `/bp:build --peer-review` |
+| `/cavekit quick` | `/bp:quick` (end-to-end with no stops) |
 
 ## Skills (reference docs)
 
@@ -194,15 +194,15 @@ These still work but are superseded by the three main commands:
 |-------|-------|
 | `bp:methodology` | Core DABI lifecycle |
 | `bp:design-system` | How to write and maintain DESIGN.md (9-section Stitch format) |
-| `bp:blueprint-writing` | How to write blueprints with testable criteria |
+| `bp:cavekit-writing` | How to write kits with testable criteria |
 | `bp:peer-review` | Cross-model review patterns |
 | `bp:peer-review-loop` | Ralph Loop + Codex architecture |
 | `bp:validation-first` | Every requirement must be auto-testable |
 | `bp:convergence-monitoring` | Detecting if loop is converging or stuck |
-| `bp:revision` | Tracing bugs back to blueprints |
+| `bp:revision` | Tracing bugs back to kits |
 | `bp:context-architecture` | Organizing context/ for AI agents |
 | `bp:impl-tracking` | Progress tracking and dead ends |
-| `blueprint:brownfield-adoption` | Adopting Blueprint on existing codebases |
+| `cavekit:brownfield-adoption` | Adopting Cavekit on existing codebases |
 | `bp:prompt-pipeline` | Designing prompt sequences |
-| `blueprint:speculative-pipeline` | Staggered pipeline execution |
-| `blueprint:documentation-inversion` | Agent-first documentation |
+| `cavekit:speculative-pipeline` | Staggered pipeline execution |
+| `cavekit:documentation-inversion` | Agent-first documentation |

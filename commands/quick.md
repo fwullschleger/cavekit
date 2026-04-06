@@ -5,9 +5,9 @@ argument-hint: "<feature description> [--skip-inspect] [--peer-review] [--max-it
 allowed-tools: ["Bash(${CLAUDE_PLUGIN_ROOT}/scripts/setup-build.sh:*)", "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/bp-config.sh:*)", "Bash(git *)"]
 ---
 
-# Blueprint Quick — End-to-End Feature Build
+# Cavekit Quick — End-to-End Feature Build
 
-Run the full Blueprint pipeline (draft → architect → build → inspect) from a single feature description with no stops for user input. Draft and architect phases are streamlined — no interactive design conversation, no user gates between phases.
+Run the full Cavekit pipeline (draft → architect → build → inspect) from a single feature description with no stops for user input. Draft and architect phases are streamlined — no interactive design conversation, no user gates between phases.
 
 **When to use:** Small-to-medium features where you trust the agent's decomposition. For large or ambiguous projects, use `/bp:draft` interactively instead.
 
@@ -47,28 +47,28 @@ Do NOT run this phase inline in the parent thread. Dispatch a `bp:drafter` subag
 
 ### 1a: Ensure Directories
 
-Create if missing: `context/blueprints/`, `context/plans/`, `context/impl/`, `context/impl/archive/`, `context/refs/`
+Create if missing: `context/kits/`, `context/plans/`, `context/impl/`, `context/impl/archive/`, `context/refs/`
 
 ### 1b: Explore Context
 
 Silently gather context (do NOT present findings to user):
-1. Check for existing blueprints in `context/blueprints/`
+1. Check for existing kits in `context/kits/`
 2. Read README, CLAUDE.md if present
 3. Scan codebase structure (directory layout, key files, package.json/Cargo.toml/etc.)
 4. Check recent git commits (`git log --oneline -10`)
 5. Check for `DESIGN.md` at project root — if present, it constrains UI decisions
 
-### 1c: Decompose and Write Blueprints
+### 1c: Decompose and Write Kits
 
 Using the feature description + project context, directly:
 
 1. **Decompose** into domains (prefer fewer — 1 domain is fine for small features)
-2. **Write** `context/blueprints/blueprint-{domain}.md` files following the standard format:
+2. **Write** `context/kits/cavekit-{domain}.md` files following the standard format:
    - YAML frontmatter with `created` and `last_edited`
    - R-numbered requirements with testable acceptance criteria
    - Out of Scope section
    - Cross-references if multiple domains
-3. **Write** `context/blueprints/blueprint-overview.md`
+3. **Write** `context/kits/cavekit-overview.md`
 
 **Quick Draft Rules:**
 - YAGNI — only what the user described, nothing extra
@@ -76,7 +76,7 @@ Using the feature description + project context, directly:
 - Acceptance criteria must be testable but don't over-specify
 - If DESIGN.md exists and the feature involves UI, reference design tokens in acceptance criteria
 - Skip the visual companion, skip approach proposals
-- Skip the blueprint-reviewer subagent loop — you validate inline
+- Skip the cavekit-reviewer subagent loop — you validate inline
 - Count your acceptance criteria — every one must be concrete enough that the architect phase can assign it to a task. If a criterion is vague ("works well", "good UX"), rewrite it to be testable before proceeding.
 - Do a single self-check: no TODOs, no placeholders, no implementation details in requirements
 
@@ -99,9 +99,9 @@ Streamlined version of `/bp:architect` — runs inline, no stopping.
 
 Do NOT run this phase inline in the parent thread. Dispatch a `bp:architect` subagent with `model: "{REASONING_MODEL}"` and give it the quick-architect rules below.
 
-### 2a: Read Blueprints
+### 2a: Read Kits
 
-Read all blueprint files just written.
+Read all cavekit files just written.
 
 ### 2b: Generate Build Site
 
@@ -115,7 +115,7 @@ Read all blueprint files just written.
 - Dependencies must be genuine blockers
 - For UI tasks, include `Design Ref: DESIGN.md Section {N}` if DESIGN.md exists
 - Skip asking user about existing sites — overwrite if one exists
-- **Coverage gate:** After generating the build site, walk through every acceptance criterion in every blueprint requirement and confirm it maps to at least one task. If any criterion is uncovered, add a task for it before proceeding. This replaces the full blueprint-reviewer loop with a single self-check pass — fast but non-negotiable.
+- **Coverage gate:** After generating the build site, walk through every acceptance criterion in every cavekit requirement and confirm it maps to at least one task. If any criterion is uncovered, add a task for it before proceeding. This replaces the full cavekit-reviewer loop with a single self-check pass — fast but non-negotiable.
 - Include the Coverage Matrix section in the build site output (same format as the full architect path)
 
 ### 2c: Report (brief)
@@ -153,7 +153,7 @@ If `--skip-inspect` was NOT passed, run the **full inspect phase** exactly as `/
 1. Dispatch a `bp:surveyor` subagent with `model: "{REASONING_MODEL}"` for the gap analysis
 2. Dispatch a `bp:inspector` subagent with `model: "{REASONING_MODEL}"` for the peer review
 3. Synthesize both results into the full inspect report with verdict (APPROVE / REVISE / REJECT)
-4. Auto-revise blueprints and site if gaps found
+4. Auto-revise kits and site if gaps found
 
 ---
 
@@ -162,7 +162,7 @@ If `--skip-inspect` was NOT passed, run the **full inspect phase** exactly as `/
 After all phases complete, present:
 
 ```markdown
-# Blueprint Quick — Complete
+# Cavekit Quick — Complete
 
 **Feature:** {original description}
 

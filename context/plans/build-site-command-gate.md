@@ -5,45 +5,45 @@ last_edited: "2026-03-31T00:00:00Z"
 
 # Build Site — Command Safety Gate
 
-10 tasks across 4 tiers from 1 blueprint (+ codex-bridge dependency).
+10 tasks across 4 tiers from 1 cavekit (+ codex-bridge dependency).
 
 ---
 
 ## Tier 0 — No Dependencies (Start Here)
 
-| Task | Title | Blueprint | Requirement | Effort |
+| Task | Title | Cavekit | Requirement | Effort |
 |------|-------|-----------|-------------|--------|
-| T-101 | PreToolUse hook scaffold (Bash matcher, approve/block/passthrough return) | blueprint-command-gate.md | R1 | M |
-| T-102 | Built-in allowlist and blocklist with base-executable + flag classification | blueprint-command-gate.md | R2 | M |
-| T-103 | Command gate configuration schema and defaults | blueprint-command-gate.md | R7 | S |
+| T-101 | PreToolUse hook scaffold (Bash matcher, approve/block/passthrough return) | cavekit-command-gate.md | R1 | M |
+| T-102 | Built-in allowlist and blocklist with base-executable + flag classification | cavekit-command-gate.md | R2 | M |
+| T-103 | Command gate configuration schema and defaults | cavekit-command-gate.md | R7 | S |
 
 ---
 
 ## Tier 1 — Depends on Tier 0
 
-| Task | Title | Blueprint | Requirement | blockedBy | Effort |
+| Task | Title | Cavekit | Requirement | blockedBy | Effort |
 |------|-------|-----------|-------------|-----------|--------|
-| T-104 | Fast-path classifier (allowlist/blocklist lookup in hook) | blueprint-command-gate.md | R2 | T-101, T-102 | M |
-| T-105 | Claude permission system integration (skip gate for pre-allowed/blocked) | blueprint-command-gate.md | R4 | T-101, T-103 | M |
-| T-106 | Command normalizer (strip variable args, preserve structure + flags) | blueprint-command-gate.md | R5 | T-102 | M |
+| T-104 | Fast-path classifier (allowlist/blocklist lookup in hook) | cavekit-command-gate.md | R2 | T-101, T-102 | M |
+| T-105 | Claude permission system integration (skip gate for pre-allowed/blocked) | cavekit-command-gate.md | R4 | T-101, T-103 | M |
+| T-106 | Command normalizer (strip variable args, preserve structure + flags) | cavekit-command-gate.md | R5 | T-102 | M |
 
 ---
 
 ## Tier 2 — Depends on Tier 1
 
-| Task | Title | Blueprint | Requirement | blockedBy | Effort |
+| Task | Title | Cavekit | Requirement | blockedBy | Effort |
 |------|-------|-----------|-------------|-----------|--------|
-| T-107 | Codex safety classification call (send command, parse structured verdict) | blueprint-command-gate.md | R3 | T-104, T-105 | L |
-| T-108 | Pattern-based verdict cache (normalized key, session-scoped, in-memory) | blueprint-command-gate.md | R5 | T-106, T-107 | M |
+| T-107 | Codex safety classification call (send command, parse structured verdict) | cavekit-command-gate.md | R3 | T-104, T-105 | L |
+| T-108 | Pattern-based verdict cache (normalized key, session-scoped, in-memory) | cavekit-command-gate.md | R5 | T-106, T-107 | M |
 
 ---
 
 ## Tier 3 — Depends on Tier 2
 
-| Task | Title | Blueprint | Requirement | blockedBy | Effort |
+| Task | Title | Cavekit | Requirement | blockedBy | Effort |
 |------|-------|-----------|-------------|-----------|--------|
-| T-109 | Graceful degradation (Codex unavailable fallback, timeout handling) | blueprint-command-gate.md | R6 | T-107 | M |
-| T-110 | User-extensible allowlist/blocklist via config + session gate mode (all/interactive/off) | blueprint-command-gate.md | R2, R7 | T-104, T-103 | S |
+| T-109 | Graceful degradation (Codex unavailable fallback, timeout handling) | cavekit-command-gate.md | R6 | T-107 | M |
+| T-110 | User-extensible allowlist/blocklist via config + session gate mode (all/interactive/off) | cavekit-command-gate.md | R2, R7 | T-104, T-103 | S |
 
 ---
 
@@ -90,13 +90,13 @@ This site depends on `build-site-codex.md` tasks T-001 and T-002 (Codex binary d
 
 ## Architect Report
 
-### Blueprints Read: 1 (+ codex-bridge for detection)
+### Kits Read: 1 (+ codex-bridge for detection)
 ### Tasks Generated: 10
 ### Tiers: 4
 ### Tier 0 Tasks: 3 (can run in parallel immediately)
 
 ### Task-to-Requirement Coverage
-| Blueprint | Requirement | Tasks |
+| Cavekit | Requirement | Tasks |
 |-----------|-------------|-------|
 | command-gate | R1 (PreToolUse Hook) | T-101 |
 | command-gate | R2 (Fast-Path Classification) | T-102, T-104, T-110 |

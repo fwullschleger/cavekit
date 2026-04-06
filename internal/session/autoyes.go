@@ -3,7 +3,7 @@ package session
 import (
 	"context"
 
-	"github.com/julb/blueprint-monitor/internal/tmux"
+	"github.com/JuliusBrussee/cavekit/internal/tmux"
 )
 
 // AutoYes monitors pane content and auto-approves permission prompts.

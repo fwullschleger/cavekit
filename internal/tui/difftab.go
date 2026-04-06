@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/julb/blueprint-monitor/internal/worktree"
+	"github.com/JuliusBrussee/cavekit/internal/worktree"
 )
 
 // DiffTab renders git diff output for the selected instance.

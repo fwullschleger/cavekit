@@ -3,7 +3,7 @@ package tui
 import (
 	"fmt"
 
-	"github.com/julb/blueprint-monitor/internal/session"
+	"github.com/JuliusBrussee/cavekit/internal/session"
 )
 
 // StatusLine renders contextual information about the selected instance.

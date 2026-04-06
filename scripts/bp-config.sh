@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# bp-config.sh — Blueprint configuration utilities
+# bp-config.sh — Cavekit configuration utilities
 #
-# Canonical config helper for Blueprint settings.
-# Supports user-level defaults (~/.blueprint/config) and project-level overrides
-# (.blueprint/config under the repo root). Project values always win.
+# Canonical config helper for Cavekit settings.
+# Supports user-level defaults (~/.cavekit/config) and project-level overrides
+# (.cavekit/config under the repo root). Project values always win.
 #
 # Provides:
 #   bp_config_get <key> [default]
@@ -83,7 +83,7 @@ bp_global_config_path() {
     echo "$BP_GLOBAL_CONFIG_PATH"
     return
   fi
-  echo "${HOME}/.blueprint/config"
+  echo "${HOME}/.cavekit/config"
 }
 
 bp_project_config_path() {
@@ -96,7 +96,7 @@ bp_project_config_path() {
   if [[ -z "$root" ]]; then
     root="$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")"
   fi
-  echo "${root}/.blueprint/config"
+  echo "${root}/.cavekit/config"
 }
 
 bp_config_path() {
@@ -241,7 +241,7 @@ _bp_config_init_global_file() {
 
   if [[ ! -f "$cfg" ]]; then
     {
-      echo "# Blueprint configuration"
+      echo "# Cavekit configuration"
       echo "# User-level defaults"
       echo "# See: scripts/bp-config.sh for documentation"
       echo
@@ -266,7 +266,7 @@ _bp_config_init_project_file() {
 
   if [[ ! -f "$cfg" ]]; then
     cat > "$cfg" <<'EOF'
-# Blueprint configuration
+# Cavekit configuration
 # Project-level overrides
 # Add only the keys you want this repo to override.
 # See: scripts/bp-config.sh for documentation
@@ -337,7 +337,7 @@ bp_config_summary_line() {
   execution="$(bp_config_model execution)" || return 1
   exploration="$(bp_config_model exploration)" || return 1
 
-  echo "Blueprint preset: ${preset} (reasoning=${reasoning}, execution=${execution}, exploration=${exploration})"
+  echo "Cavekit preset: ${preset} (reasoning=${reasoning}, execution=${execution}, exploration=${exploration})"
 }
 
 bp_config_show() {

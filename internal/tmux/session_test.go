@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/julb/blueprint-monitor/internal/exec"
+	"github.com/JuliusBrussee/cavekit/internal/exec"
 )
 
 func TestSanitizeName(t *testing.T) {

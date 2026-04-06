@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/julb/blueprint-monitor/internal/exec"
+	"github.com/JuliusBrussee/cavekit/internal/exec"
 )
 
-const branchPrefix = "blueprint/"
+const branchPrefix = "cavekit/"
 
 // Manager handles git worktree operations.
 type Manager struct {
@@ -23,10 +23,10 @@ func NewManager(executor exec.Executor) *Manager {
 }
 
 // WorktreePath returns the canonical worktree path for a given project root and site name.
-// Format: {project_root}/../{project_name}-blueprint-{site_name}
+// Format: {project_root}/../{project_name}-cavekit-{site_name}
 func WorktreePath(projectRoot, siteName string) string {
 	projectName := filepath.Base(projectRoot)
-	return filepath.Join(filepath.Dir(projectRoot), projectName+"-blueprint-"+siteName)
+	return filepath.Join(filepath.Dir(projectRoot), projectName+"-cavekit-"+siteName)
 }
 
 // BranchName returns the canonical branch name for a site.

@@ -2,5 +2,5 @@
   <rect width="80" height="80" rx="16" fill="#1F4B99"/>
   <path d="M16 24h48v6H16zM16 36h36v6H16zM16 48h42v6H16zM16 60h30v6H16z" fill="#fff" opacity="0.9"/>
   <path d="M60 40l14 14-14 14" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
-  <text x="96" y="52" font-family="system-ui,-apple-system,sans-serif" font-size="36" font-weight="700" fill="#1F4B99">Blueprint</text>
+  <text x="96" y="52" font-family="system-ui,-apple-system,sans-serif" font-size="36" font-weight="700" fill="#1F4B99">Cavekit</text>
 </svg>

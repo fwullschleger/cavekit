@@ -6,11 +6,11 @@ Complete reference for the 6-gate validation pipeline. Covers gate definitions, 
 
 ## 1. Overview
 
-Validation-first design is a core Blueprint principle:
+Validation-first design is a core Cavekit principle:
 
-> **Every blueprint requirement must include testable validation criteria. If an agent cannot automatically validate a requirement, that requirement will not be met.**
+> **Every cavekit requirement must include testable validation criteria. If an agent cannot automatically validate a requirement, that requirement will not be met.**
 
-This principle drives the entire validation architecture. Validation is not an afterthought -- it is designed into blueprints from the beginning, and every stage of implementation must pass through validation gates before proceeding.
+This principle drives the entire validation architecture. Validation is not an afterthought -- it is designed into kits from the beginning, and every stage of implementation must pass through validation gates before proceeding.
 
 ---
 
@@ -183,11 +183,11 @@ For each modified source file:
 **Integration Test Pattern:**
 
 ```markdown
-For each blueprint requirement with cross-module dependencies:
+For each cavekit requirement with cross-module dependencies:
 1. Identify the components involved
 2. Set up test fixtures (databases, services, mocks)
 3. Execute the full workflow
-4. Verify the end state matches blueprint acceptance criteria
+4. Verify the end state matches cavekit acceptance criteria
 5. Tear down fixtures
 ```
 
@@ -214,7 +214,7 @@ For each blueprint requirement with cross-module dependencies:
 - Benchmarks pass within acceptable thresholds
 - No performance regressions from prior iterations
 - Memory usage within bounds
-- Response times within blueprint requirements
+- Response times within cavekit requirements
 
 **Generic Examples:**
 
@@ -230,7 +230,7 @@ For each blueprint requirement with cross-module dependencies:
 **Performance Test Pattern:**
 
 ```markdown
-For each blueprint requirement with performance criteria:
+For each cavekit requirement with performance criteria:
 1. Identify the metric and threshold
 2. Set up the benchmark environment
 3. Run the benchmark N times for statistical significance
@@ -238,7 +238,7 @@ For each blueprint requirement with performance criteria:
 5. If regression detected, profile and fix
 ```
 
-**Note:** Not all projects need Gate 4. If blueprints have no performance requirements, this gate is skipped.
+**Note:** Not all projects need Gate 4. If kits have no performance requirements, this gate is skipped.
 
 **Agent Behavior on Failure:**
 1. Identify which benchmark failed
@@ -331,7 +331,7 @@ For each blueprint requirement with performance criteria:
 3. Human provides feedback:
    - Approve: Work is acceptable
    - Revise: Specific changes needed (feeds back into iteration)
-   - Reject: Fundamental approach is wrong (feeds back into blueprint/plan)
+   - Reject: Fundamental approach is wrong (feeds back into cavekit/plan)
 
 4. If revisions needed:
    - Human documents feedback
@@ -347,22 +347,22 @@ For each blueprint requirement with performance criteria:
 
 Phase gates are broader than the 6-gate pipeline. They govern transitions between DABI phases.
 
-### Blueprint -> Plan Phase Gate
+### Cavekit -> Plan Phase Gate
 
 ```markdown
 Before starting the Architect phase, verify:
-- [ ] All domains identified and blueprint files created
+- [ ] All domains identified and cavekit files created
 - [ ] Every requirement has testable acceptance criteria
-- [ ] Cross-references between blueprints are complete
+- [ ] Cross-references between kits are complete
 - [ ] Scope defined (in-scope and out-of-scope)
-- [ ] Human has reviewed and approved blueprints
+- [ ] Human has reviewed and approved kits
 ```
 
 ### Plan -> Build Phase Gate
 
 ```markdown
 Before starting the Build phase, verify:
-- [ ] All blueprint requirements mapped to plan tasks
+- [ ] All cavekit requirements mapped to plan tasks
 - [ ] Task dependencies defined and acyclic
 - [ ] Test strategies defined for each feature
 - [ ] Build site established
@@ -392,7 +392,7 @@ Before starting the Monitor phase, verify:
 
 ---
 
-## 10. Validation-First Blueprint Design
+## 10. Validation-First Cavekit Design
 
 The key principle that makes validation gates work:
 
@@ -410,14 +410,14 @@ The key principle that makes validation gates work:
 ### R1: Navigation renders correctly
 **Acceptance Criteria:**
 - [ ] Navigation bar renders with all menu items visible
-- [ ] Menu items match the list in blueprint-ui.md section 2.1
+- [ ] Menu items match the list in cavekit-ui.md section 2.1
 - [ ] Navigation is responsive (works at 320px, 768px, 1024px widths)
 - [ ] All navigation links resolve to valid routes
 ```
 
 ### Mapping Requirements to Gates
 
-Every blueprint requirement should map to at least one validation gate:
+Every cavekit requirement should map to at least one validation gate:
 
 | Requirement Type | Primary Gate | Secondary Gate |
 |-----------------|-------------|----------------|
@@ -431,16 +431,16 @@ Every blueprint requirement should map to at least one validation gate:
 
 ### Validation Coverage Matrix
 
-For large projects, maintain a matrix mapping every blueprint requirement to its validation gates:
+For large projects, maintain a matrix mapping every cavekit requirement to its validation gates:
 
 ```markdown
-| Blueprint | Requirement | Gate 1 | Gate 2 | Gate 3 | Gate 4 | Gate 5 | Gate 6 |
+| Cavekit | Requirement | Gate 1 | Gate 2 | Gate 3 | Gate 4 | Gate 5 | Gate 6 |
 |-----------|------------|--------|--------|--------|--------|--------|--------|
-| blueprint-auth | R1: Login | Build | Unit | E2E | - | Launch | Review |
-| blueprint-auth | R2: Session | Build | Unit | E2E | - | - | Review |
-| blueprint-data | R1: Schema | Build | Unit | Int | - | - | - |
-| blueprint-data | R2: Query perf | Build | Unit | Int | Perf | - | - |
-| blueprint-ui | R1: Navigation | Build | Unit | E2E | - | Launch | Review |
+| cavekit-auth | R1: Login | Build | Unit | E2E | - | Launch | Review |
+| cavekit-auth | R2: Session | Build | Unit | E2E | - | - | Review |
+| cavekit-data | R1: Schema | Build | Unit | Int | - | - | - |
+| cavekit-data | R2: Query perf | Build | Unit | Int | Perf | - | - |
+| cavekit-ui | R1: Navigation | Build | Unit | E2E | - | Launch | Review |
 ```
 
 If a requirement has NO gate coverage, it is effectively unvalidated and is unlikely to be implemented correctly.
@@ -581,7 +581,7 @@ Each script exits with code 0 on success, non-zero on failure.
 1. **Gates are ordered.** Always run from Gate 1 through Gate 6. Never skip gates.
 2. **Fix the earliest failure first.** Later gate results are unreliable if earlier gates failed.
 3. **One merge at a time.** Merge -> validate -> clean -> next merge.
-4. **If the agent cannot validate it, it will not be met.** Design blueprints with automated validation in mind.
+4. **If the agent cannot validate it, it will not be met.** Design kits with automated validation in mind.
 5. **The human is the final gate.** Gate 6 catches what automation cannot.
-6. **Validation is not optional.** Every blueprint requirement must map to at least one gate.
+6. **Validation is not optional.** Every cavekit requirement must map to at least one gate.
 7. **Completion signals require all gates passing.** Never emit `<all-tasks-complete>` with failing gates.

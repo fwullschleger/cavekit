@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/julb/blueprint-monitor/internal/exec"
+	"github.com/JuliusBrussee/cavekit/internal/exec"
 )
 
 const (
-	// SessionPrefix is prepended to all Blueprint tmux session names.
+	// SessionPrefix is prepended to all Cavekit tmux session names.
 	SessionPrefix = "bp_"
 	historyLimit  = "10000"
 )
@@ -83,7 +83,7 @@ func (m *Manager) Kill(ctx context.Context, name string) error {
 	return nil
 }
 
-// ListSessions returns all Blueprint tmux sessions (those with the bp_ prefix).
+// ListSessions returns all Cavekit tmux sessions (those with the bp_ prefix).
 func (m *Manager) ListSessions(ctx context.Context) ([]string, error) {
 	res, err := m.exec.Run(ctx, "tmux", "list-sessions", "-F", "#{session_name}")
 	if err != nil {

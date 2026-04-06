@@ -21,7 +21,7 @@ Run the review script, forwarding any arguments the user provided:
 
 - **Default target**: diffs the current build tier's changes against the worktree base (auto-detected from upstream tracking branch, or falls back to `main`/`master`/`develop`).
 - **`--base <ref>`**: override the diff base to any git ref (branch, tag, or commit SHA).
-- Findings are printed to stdout in Blueprint's standard finding format (`F-NNN` numbered, severity `P0`–`P3`, source tagged as `codex`).
+- Findings are printed to stdout in Cavekit's standard finding format (`F-NNN` numbered, severity `P0`–`P3`, source tagged as `codex`).
 - Findings are automatically appended to `context/impl/impl-review-findings.md`.
 - If Codex is not installed or not available, the script prints a clear message and exits gracefully — no error is thrown.
 

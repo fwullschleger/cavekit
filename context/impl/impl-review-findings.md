@@ -16,10 +16,10 @@ last_edited: "2026-03-17T12:00:00Z"
 | F-007: FrontierPicker never instantiated | P1 | internal/tui/app.go:75-93 | NEW | T-049 |
 | F-008: ActionScrollUp/Down never handled | P1 | internal/tui/app.go:109-174 | NEW | T-048 |
 | F-009: Session load doesn't validate existence | P1 | internal/session/persistence.go:49-63 | NEW | T-050 |
-| F-010: --autoyes flag not parsed | P1 | cmd/blueprint/main.go:62-67 | NEW | T-051 |
+| F-010: --autoyes flag not parsed | P1 | cmd/cavekit/main.go:62-67 | NEW | T-051 |
 | F-011: Instance list missing branch/diff stats | P2 | internal/tui/instancelist.go:76-105 | NEW | T-053 |
-| F-012: Status command shows paths not progress | P2 | cmd/blueprint/main.go:76-105 | NEW | T-052 |
+| F-012: Status command shows paths not progress | P2 | cmd/cavekit/main.go:76-105 | NEW | T-052 |
 | F-013: Menu doesn't adapt to context | P2 | internal/tui/menu.go:44-48 | NEW | T-055 |
 | F-014: DiffTab scroll position never applied | P2 | internal/tui/difftab.go:42-67 | NEW | T-054 |
-| F-015: Missing preflight for program | P3 | cmd/blueprint/main.go:142-150 | NEW | T-056 |
+| F-015: Missing preflight for program | P3 | cmd/cavekit/main.go:142-150 | NEW | T-056 |
 | F-016: TerminalTab inconsistent session naming | P3 | internal/tui/terminaltab.go:26-37 | NEW | — |

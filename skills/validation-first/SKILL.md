@@ -218,7 +218,7 @@ curl -f http://localhost:{PORT}/health
 
 ## Mapping Spec Requirements to Gates
 
-Every spec requirement must map to at least one validation gate. When writing specs (see `bp:blueprint-writing`), each acceptance criterion should indicate which gate verifies it.
+Every spec requirement must map to at least one validation gate. When writing specs (see `bp:cavekit-writing`), each acceptance criterion should indicate which gate verifies it.
 
 ### Mapping Pattern
 
@@ -250,7 +250,7 @@ Phase gates are mandatory verification checkpoints between DABI phases. They ens
 
 | Transition | Gate Condition | How to Verify |
 |------------|---------------|---------------|
-| **Spec → Plan** | All domains have specs with testable acceptance criteria | Review blueprint-overview.md; every R{N} has AC items |
+| **Spec → Plan** | All domains have specs with testable acceptance criteria | Review cavekit-overview.md; every R{N} has AC items |
 | **Plan → Implement** | Plans reference specs, define sequence, include test strategies | Review plan files; every task maps to spec requirements |
 | **Implement → Iterate** | Code builds (Gate 1), tests pass (Gate 2), impl tracking is current | Run `{BUILD_COMMAND}` and `{TEST_COMMAND}`; check impl tracking |
 | **Iterate → Monitor** | Convergence detected: changes decreasing iteration-over-iteration | Compare diffs across last 3-5 iterations |
@@ -425,7 +425,7 @@ The existing `verification-before-completion` skill provides a general framework
 - `superpowers:verification-before-completion` ensures the agent checks its work
 - `bp:validation-first` defines exactly what checks to run and in what order
 
-### With `bp:blueprint-writing`
+### With `bp:cavekit-writing`
 
 Every spec requirement must have acceptance criteria that map to validation gates. The spec-writing skill defines how to write those criteria. Validation-first design defines how to verify them.
 

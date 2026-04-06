@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-const defaultStatePath = ".blueprint-monitor/state.json"
+const defaultStatePath = ".cavekit/state.json"
 
 // Store handles saving and loading instance state.
 type Store struct {
@@ -14,7 +14,7 @@ type Store struct {
 }
 
 // NewStore creates a persistence store at the given path.
-// If empty, uses ~/.blueprint-monitor/state.json.
+// If empty, uses ~/.cavekit/state.json.
 func NewStore(path string) *Store {
 	if path == "" {
 		home, _ := os.UserHomeDir()

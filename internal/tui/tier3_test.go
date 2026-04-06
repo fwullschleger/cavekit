@@ -4,10 +4,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/julb/blueprint-monitor/internal/exec"
-	"github.com/julb/blueprint-monitor/internal/site"
-	"github.com/julb/blueprint-monitor/internal/tmux"
-	"github.com/julb/blueprint-monitor/internal/worktree"
+	"github.com/JuliusBrussee/cavekit/internal/exec"
+	"github.com/JuliusBrussee/cavekit/internal/site"
+	"github.com/JuliusBrussee/cavekit/internal/tmux"
+	"github.com/JuliusBrussee/cavekit/internal/worktree"
 )
 
 func TestPreviewTab_Content(t *testing.T) {

@@ -3,7 +3,7 @@ package tui
 import (
 	"context"
 
-	"github.com/julb/blueprint-monitor/internal/tmux"
+	"github.com/JuliusBrussee/cavekit/internal/tmux"
 )
 
 // PreviewTab captures and renders tmux pane content for the selected instance.

@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/julb/blueprint-monitor/internal/tmux"
-	"github.com/julb/blueprint-monitor/internal/worktree"
+	"github.com/JuliusBrussee/cavekit/internal/tmux"
+	"github.com/JuliusBrussee/cavekit/internal/worktree"
 )
 
 // Manager orchestrates instance lifecycle operations.
@@ -142,7 +142,7 @@ func archiveImplState(wtPath string, tasksDone int) {
 }
 
 func deriveSiteNameFromWorktree(wtPath, projectRoot string) string {
-	// WorktreePath format: {root}/../{name}-blueprint-{site}
+	// WorktreePath format: {root}/../{name}-cavekit-{site}
 	// We need to extract the site name
 	prefix := worktree.WorktreePath(projectRoot, "")
 	if len(wtPath) > len(prefix) {

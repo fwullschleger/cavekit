@@ -6,7 +6,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLUGIN_NAME="bp"
 PLUGIN_DIR="$HOME/plugins/$PLUGIN_NAME"
 MARKETPLACE_FILE="$HOME/.agents/plugins/marketplace.json"
-LEGACY_LINK="$HOME/.codex/blueprint"
+LEGACY_LINK="$HOME/.codex/cavekit"
 PROMPTS_DIR="$HOME/.codex/prompts"
 
 R=$'\033[0m' B=$'\033[1m' GR=$'\033[32m' YL=$'\033[33m' BL=$'\033[34m' RD=$'\033[31m'
@@ -18,7 +18,7 @@ fail()  { printf "${RD}✗${R} %s\n" "$1" >&2; exit 1; }
 
 command -v python3 &>/dev/null || fail "python3 not found."
 
-info "Syncing Blueprint into Codex local plugins..."
+info "Syncing Cavekit into Codex local plugins..."
 
 mkdir -p "$HOME/plugins" "$(dirname "$MARKETPLACE_FILE")" "$PROMPTS_DIR"
 ln -sfn "$ROOT_DIR" "$PLUGIN_DIR"

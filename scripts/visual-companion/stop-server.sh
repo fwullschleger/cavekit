@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Stop the Blueprint visual companion server and clean up
+# Stop the Cavekit visual companion server and clean up
 # Usage: stop-server.sh <screen_dir>
 #
 # Kills the server process. Only deletes session directory if it's
-# under /tmp (ephemeral). Persistent directories (.blueprint/) are
+# under /tmp (ephemeral). Persistent directories (.cavekit/) are
 # kept so mockups can be reviewed later.
 
 SCREEN_DIR="$1"

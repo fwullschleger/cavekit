@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# codex-design-challenge.sh — Design Challenge: Codex adversarial blueprint review
+# codex-design-challenge.sh — Design Challenge: Codex adversarial cavekit review
 # T-301: Design challenge prompt template
 # T-302: Challenge output parser
 #
 # Source this file to get bp_design_challenge / bp_parse_challenge_findings.
-# Execute directly to run a challenge against blueprints in context/blueprints/.
+# Execute directly to run a challenge against kits in context/kits/.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -30,9 +30,9 @@ _BP_DESIGN_CHALLENGE_LOADED=1
 
 _bp_design_challenge_prompt() {
   cat <<'PROMPT'
-You are a senior software architect performing an adversarial design review of blueprint specifications. Your job is to CHALLENGE the design, not rubber-stamp it.
+You are a senior software architect performing an adversarial design review of cavekit specifications. Your job is to CHALLENGE the design, not rubber-stamp it.
 
-Review all blueprints as a whole system. Focus exclusively on design-level concerns:
+Review all kits as a whole system. Focus exclusively on design-level concerns:
 
 1. **Domain Decomposition Quality**
    - Are domain boundaries drawn at the right places?
@@ -63,19 +63,19 @@ Review all blueprints as a whole system. Focus exclusively on design-level conce
 - Do NOT provide implementation-level feedback (no framework suggestions, no file path opinions, no API design)
 - You MUST propose at least one alternative decomposition if you can identify a better one
 - Focus on issues that would cause real problems during implementation
-- Be specific: reference blueprint files and requirement numbers
+- Be specific: reference cavekit files and requirement numbers
 
 ## Output Format
 
 For each finding, output exactly one row in a markdown table with columns:
-  Category, Severity, Blueprint, Requirement, Description
+  Category, Severity, Cavekit, Requirement, Description
 
 Category must be one of: decomposition, coverage, ambiguity, scope, assumption
 Severity must be one of: critical, advisory
 
 If you find no issues at all, output exactly: NO_ISSUES
 
-## Blueprints to Review
+## Kits to Review
 
 PROMPT
 }
@@ -85,7 +85,7 @@ PROMPT
 # Parse Codex design challenge output into structured findings.
 # Input: raw Codex output (stdin or $1)
 # Output: structured findings, one per line:
-#   CATEGORY|SEVERITY|BLUEPRINT|REQUIREMENT|DESCRIPTION
+#   CATEGORY|SEVERITY|CAVEKIT|REQUIREMENT|DESCRIPTION
 #
 # Also sets:
 #   _BP_CHALLENGE_CRITICAL_COUNT
@@ -111,18 +111,18 @@ bp_parse_challenge_findings() {
 
     # Match rows with our expected categories
     if echo "$line" | grep -qE '\|\s*(decomposition|coverage|ambiguity|scope|assumption)'; then
-      local category severity blueprint requirement description
+      local category severity cavekit requirement description
 
       category="$(echo "$line" | awk -F'|' '{gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); print $2}')"
       severity="$(echo "$line" | awk -F'|' '{gsub(/^[[:space:]]+|[[:space:]]+$/, "", $3); print $3}')"
-      blueprint="$(echo "$line" | awk -F'|' '{gsub(/^[[:space:]]+|[[:space:]]+$/, "", $4); print $4}')"
+      cavekit="$(echo "$line" | awk -F'|' '{gsub(/^[[:space:]]+|[[:space:]]+$/, "", $4); print $4}')"
       requirement="$(echo "$line" | awk -F'|' '{gsub(/^[[:space:]]+|[[:space:]]+$/, "", $5); print $5}')"
       description="$(echo "$line" | awk -F'|' '{gsub(/^[[:space:]]+|[[:space:]]+$/, "", $6); print $6}')"
 
       # Clean backticks
       category="$(echo "$category" | tr -d '\`' | xargs)"
       severity="$(echo "$severity" | tr -d '\`' | xargs)"
-      blueprint="$(echo "$blueprint" | tr -d '\`' | xargs)"
+      cavekit="$(echo "$cavekit" | tr -d '\`' | xargs)"
       requirement="$(echo "$requirement" | tr -d '\`' | xargs)"
       description="$(echo "$description" | tr -d '\`' | xargs)"
 
@@ -134,7 +134,7 @@ bp_parse_challenge_findings() {
         *) severity="advisory"; _BP_CHALLENGE_ADVISORY_COUNT=$((_BP_CHALLENGE_ADVISORY_COUNT + 1)) ;;
       esac
 
-      findings+="${category}|${severity}|${blueprint}|${requirement}|${description}"$'\n'
+      findings+="${category}|${severity}|${cavekit}|${requirement}|${description}"$'\n'
     fi
   done <<< "$raw"
 
@@ -144,10 +144,10 @@ bp_parse_challenge_findings() {
 }
 
 # ── bp_design_challenge ───────────────────────────────────────────────
-# Main entry point: send blueprints to Codex for design challenge.
+# Main entry point: send kits to Codex for design challenge.
 #
 # Arguments:
-#   --blueprints-dir <path>  Directory containing blueprints (default: context/blueprints/)
+#   --kits-dir <path>  Directory containing kits (default: context/kits/)
 #
 # Returns:
 #   0 — no critical issues (clean or advisory-only)
@@ -155,11 +155,11 @@ bp_parse_challenge_findings() {
 #   2 — Codex unavailable or invocation failed (graceful skip)
 
 bp_design_challenge() {
-  local blueprints_dir="${PROJECT_ROOT}/context/blueprints"
+  local kits_dir="${PROJECT_ROOT}/context/kits"
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --blueprints-dir) blueprints_dir="$2"; shift 2 ;;
+      --kits-dir) kits_dir="$2"; shift 2 ;;
       --help|-h) _design_challenge_usage; return 0 ;;
       *) echo "[bp:design-challenge] Unknown argument: $1" >&2; return 2 ;;
     esac
@@ -178,31 +178,31 @@ bp_design_challenge() {
     return 2
   fi
 
-  # Gather blueprints
-  if [[ ! -d "$blueprints_dir" ]]; then
-    echo "[bp:design-challenge] No blueprints directory at $blueprints_dir" >&2
+  # Gather kits
+  if [[ ! -d "$kits_dir" ]]; then
+    echo "[bp:design-challenge] No kits directory at $kits_dir" >&2
     return 2
   fi
 
-  local blueprint_content=""
+  local cavekit_content=""
   local file_count=0
-  for f in "$blueprints_dir"/blueprint-*.md; do
+  for f in "$kits_dir"/cavekit-*.md; do
     [[ -f "$f" ]] || continue
-    blueprint_content+="--- FILE: $(basename "$f") ---"$'\n'
-    blueprint_content+="$(cat "$f")"$'\n\n'
+    cavekit_content+="--- FILE: $(basename "$f") ---"$'\n'
+    cavekit_content+="$(cat "$f")"$'\n\n'
     file_count=$((file_count + 1))
   done
 
   if [[ $file_count -eq 0 ]]; then
-    echo "[bp:design-challenge] No blueprint files found in $blueprints_dir" >&2
+    echo "[bp:design-challenge] No cavekit files found in $kits_dir" >&2
     return 2
   fi
 
-  echo "[bp:design-challenge] Sending $file_count blueprint(s) to Codex for design challenge..."
+  echo "[bp:design-challenge] Sending $file_count cavekit(s) to Codex for design challenge..."
 
   # Build the full prompt
   local full_prompt
-  full_prompt="$(_bp_design_challenge_prompt)${blueprint_content}"
+  full_prompt="$(_bp_design_challenge_prompt)${cavekit_content}"
 
   # Build Codex invocation
   local model
@@ -213,7 +213,7 @@ bp_design_challenge() {
   local codex_cmd=(codex --approval-mode full-auto --model "$model" --quiet -p "$full_prompt")
 
   if [[ "${BP_CODEX_DRY_RUN:-}" == "1" ]]; then
-    echo "[bp:design-challenge] DRY RUN — would send $file_count blueprints to Codex"
+    echo "[bp:design-challenge] DRY RUN — would send $file_count kits to Codex"
     return 0
   fi
 
@@ -242,7 +242,7 @@ bp_design_challenge() {
   # Output findings
   echo ""
   echo "=== Design Challenge Findings ==="
-  echo "| Category | Severity | Blueprint | Requirement | Description |"
+  echo "| Category | Severity | Cavekit | Requirement | Description |"
   echo "|----------|----------|-----------|-------------|-------------|"
   while IFS='|' read -r cat sev bp req desc; do
     [[ -z "$cat" ]] && continue
@@ -296,7 +296,7 @@ bp_format_advisory_for_user() {
   echo ""
   echo "These findings are informational — Codex flagged them as worth considering but not blocking."
   echo ""
-  echo "| Category | Blueprint | Requirement | Finding |"
+  echo "| Category | Cavekit | Requirement | Finding |"
   echo "|----------|-----------|-------------|---------|"
 
   while IFS='|' read -r cat sev bp req desc; do
@@ -307,7 +307,7 @@ bp_format_advisory_for_user() {
 
 # Format critical findings for auto-fix processing.
 # Call after bp_collect_challenge_findings.
-# Output: one finding per line in format: BLUEPRINT|REQUIREMENT|CATEGORY|DESCRIPTION
+# Output: one finding per line in format: CAVEKIT|REQUIREMENT|CATEGORY|DESCRIPTION
 
 bp_format_critical_for_fix() {
   if [[ -z "$_BP_CHALLENGE_CRITICAL_FINDINGS" ]]; then
@@ -324,12 +324,12 @@ bp_format_critical_for_fix() {
 
 _design_challenge_usage() {
   cat <<EOF
-Usage: codex-design-challenge.sh [--blueprints-dir <path>]
+Usage: codex-design-challenge.sh [--kits-dir <path>]
 
-Send blueprints to Codex for adversarial design review.
+Send kits to Codex for adversarial design review.
 
 Options:
-  --blueprints-dir <path>  Blueprint directory (default: context/blueprints/)
+  --kits-dir <path>  Cavekit directory (default: context/kits/)
   --help, -h               Show this help
 
 Environment:
@@ -341,7 +341,7 @@ EOF
 # Orchestrates the challenge-fix-rechallenge cycle.
 #
 # Arguments:
-#   --blueprints-dir <path>  Blueprint directory
+#   --kits-dir <path>  Cavekit directory
 #   --max-cycles <N>         Maximum challenge-fix cycles (default: 2)
 #
 # Returns:
@@ -354,13 +354,13 @@ EOF
 # critical findings in structured format for the caller to process.
 
 bp_design_challenge_cycle() {
-  local blueprints_dir="${PROJECT_ROOT}/context/blueprints"
+  local kits_dir="${PROJECT_ROOT}/context/kits"
   local max_cycles=2
   local cycle=0
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --blueprints-dir) blueprints_dir="$2"; shift 2 ;;
+      --kits-dir) kits_dir="$2"; shift 2 ;;
       --max-cycles) max_cycles="$2"; shift 2 ;;
       *) shift ;;
     esac
@@ -372,7 +372,7 @@ bp_design_challenge_cycle() {
 
     # Run the challenge
     local challenge_output
-    challenge_output="$(bp_design_challenge --blueprints-dir "$blueprints_dir" 2>&1)"
+    challenge_output="$(bp_design_challenge --kits-dir "$kits_dir" 2>&1)"
     local rc=$?
 
     echo "$challenge_output"
@@ -437,7 +437,7 @@ bp_design_challenge_cycle() {
     echo ""
     echo "### Remaining Critical Findings (require user judgment)"
     echo ""
-    echo "| Category | Blueprint | Requirement | Finding |"
+    echo "| Category | Cavekit | Requirement | Finding |"
     echo "|----------|-----------|-------------|---------|"
     while IFS='|' read -r cat sev bp req desc; do
       [[ -z "$cat" ]] && continue
@@ -453,11 +453,11 @@ bp_design_challenge_cycle() {
 }
 
 # ── T-306: Draft Flow Integration Point ───────────────────────────────
-# Entry point for the /bp:draft command to call after Step 8 (blueprint-reviewer).
+# Entry point for the /bp:draft command to call after Step 8 (cavekit-reviewer).
 # Runs the design challenge and returns results for insertion before Step 9 (user gate).
 #
 # Arguments:
-#   --blueprints-dir <path>  Blueprint directory
+#   --kits-dir <path>  Cavekit directory
 #
 # Output:
 #   Sets BP_CHALLENGE_ADVISORY_OUTPUT — markdown text to show user at Step 9
@@ -469,11 +469,11 @@ bp_design_challenge_cycle() {
 #   2 — skipped (Codex unavailable), proceed to user gate without challenge
 
 bp_draft_challenge_hook() {
-  local blueprints_dir="${PROJECT_ROOT}/context/blueprints"
+  local kits_dir="${PROJECT_ROOT}/context/kits"
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --blueprints-dir) blueprints_dir="$2"; shift 2 ;;
+      --kits-dir) kits_dir="$2"; shift 2 ;;
       *) shift ;;
     esac
   done
@@ -487,7 +487,7 @@ bp_draft_challenge_hook() {
   echo "[bp:draft] Running Codex design challenge..."
 
   local result
-  result="$(bp_design_challenge_cycle --blueprints-dir "$blueprints_dir" 2>&1)"
+  result="$(bp_design_challenge_cycle --kits-dir "$kits_dir" 2>&1)"
   local rc=$?
 
   local end_time

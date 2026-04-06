@@ -5,7 +5,7 @@ model: haiku
 tools: [Read, Grep, Glob, Bash]
 ---
 
-You are a convergence monitor for Blueprint. Your function is to analyze iteration loop progress and determine whether the project is converging toward completion, has hit a ceiling, or needs intervention.
+You are a convergence monitor for Cavekit. Your function is to analyze iteration loop progress and determine whether the project is converging toward completion, has hit a ceiling, or needs intervention.
 
 ## Core Concepts
 
@@ -58,7 +58,7 @@ Look for these signals:
 
 If the project is not converging, identify the root cause:
 
-- **Fuzzy blueprints**: Acceptance criteria are ambiguous, leading agents to interpret differently across iterations. Fix: tighten blueprints.
+- **Fuzzy kits**: Acceptance criteria are ambiguous, leading agents to interpret differently across iterations. Fix: tighten kits.
 - **Weak validation**: Tests do not adequately cover acceptance criteria, so agents "pass" without actually meeting requirements. Fix: improve tests.
 - **Fighting sub-agents**: Multiple agents modifying the same files with conflicting approaches. Fix: enforce file ownership or serialize access.
 - **External dependency**: Progress blocked on something outside the project. Fix: identify and unblock or mark as out of scope.
@@ -105,7 +105,7 @@ If the project is not converging, identify the root cause:
 
 - CONTINUE: Still converging. Lines changed are decreasing. Test pass rate is improving. Estimated {N} more iterations to convergence.
 - STOP: Converged. Remaining changes are trivial ({description}). Test pass rate is {X}%. Further iterations will not meaningfully improve quality.
-- INVESTIGATE: Ceiling detected. {Diagnosis}. Recommended action: {fix fuzzy blueprints / improve tests / resolve file ownership / unblock external dependency}.
+- INVESTIGATE: Ceiling detected. {Diagnosis}. Recommended action: {fix fuzzy kits / improve tests / resolve file ownership / unblock external dependency}.
 ```
 
 ## Decision Thresholds

@@ -4,7 +4,7 @@ description: "Show progress against the build site or plan — tasks done, in pr
 argument-hint: "[--filter PATTERN]"
 ---
 
-# Blueprint Progress
+# Cavekit Progress
 
 Show the user a progress report by comparing the build site against implementation tracking.
 
@@ -16,7 +16,7 @@ If no site/plan found: "No build site or plan found. Run `/bp:architect` first."
 
 ## Step 2: Read State
 
-1. Read the site file — catalog every task (T-number), its tier, blueprint requirement, and blockedBy
+1. Read the site file — catalog every task (T-number), its tier, cavekit requirement, and blockedBy
 2. Read all `context/impl/impl-*.md` files — extract task statuses (DONE, IN_PROGRESS, BLOCKED)
 3. Read `context/impl/loop-log.md` if it exists — get the latest iteration number and last task completed
 
@@ -32,7 +32,7 @@ For each task in the site:
 ## Step 4: Display Report
 
 ```markdown
-## Blueprint Progress
+## Cavekit Progress
 
 ### Summary
 | Status | Count | % |
@@ -50,9 +50,9 @@ For each task in the site:
 {tier name if any}
 
 ### Ready to Implement (next up)
-| Task | Title | Blueprint | Requirement |
+| Task | Title | Cavekit | Requirement |
 |------|-------|------|------------|
-| T-{id} | {title} | blueprint-{domain}.md | R{n} |
+| T-{id} | {title} | cavekit-{domain}.md | R{n} |
 
 ### Recently Completed
 | Task | Title | Iteration |

@@ -4,11 +4,11 @@ description: "Create or update the project's DESIGN.md — the visual design sys
 argument-hint: "[--import <name>] [--from-site <url>] [--audit] [--section <1-9>]"
 ---
 
-# Blueprint Design — Create or Update DESIGN.md
+# Cavekit Design — Create or Update DESIGN.md
 
 Create, import, update, or audit the project's visual design system document. DESIGN.md follows the 9-section Google Stitch format and serves as the authoritative visual reference for all UI-building agents across the DABI pipeline.
 
-**DESIGN.md is a parallel constraint layer** — it is not a blueprint or a plan, but a cross-cutting visual specification that every phase consults. Think of it as CLAUDE.md for visual design.
+**DESIGN.md is a parallel constraint layer** — it is not a cavekit or a plan, but a cross-cutting visual specification that every phase consults. Think of it as CLAUDE.md for visual design.
 
 ## Step 0: Resolve Execution Profile
 
@@ -254,7 +254,7 @@ Wait for response. If changes requested, make them and re-run Step 5.
    **Responsive Breakpoints:** {count}
 
    ### Next Steps
-   - Run `/bp:draft` to create blueprints — they'll reference this design system
+   - Run `/bp:draft` to create kits — they'll reference this design system
    - Run `/bp:design --audit` anytime to check design system health
    - Run `/bp:design --section N` to update a specific section
    ```

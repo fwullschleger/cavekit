@@ -76,7 +76,7 @@ function decodeFrame(buffer) {
 const PORT = process.env.COMPANION_PORT || (49152 + Math.floor(Math.random() * 16383));
 const HOST = process.env.COMPANION_HOST || '127.0.0.1';
 const URL_HOST = process.env.COMPANION_URL_HOST || (HOST === '127.0.0.1' ? 'localhost' : HOST);
-const SCREEN_DIR = process.env.COMPANION_DIR || '/tmp/blueprint-companion';
+const SCREEN_DIR = process.env.COMPANION_DIR || '/tmp/cavekit-companion';
 const OWNER_PID = process.env.COMPANION_OWNER_PID ? Number(process.env.COMPANION_OWNER_PID) : null;
 
 const MIME_TYPES = {
@@ -89,11 +89,11 @@ const MIME_TYPES = {
 
 const WAITING_PAGE = `<!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>Blueprint Visual Companion</title>
+<head><meta charset="utf-8"><title>Cavekit Visual Companion</title>
 <style>body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; }
 h1 { color: #333; } p { color: #666; }</style>
 </head>
-<body><h1>Blueprint Visual Companion</h1>
+<body><h1>Cavekit Visual Companion</h1>
 <p>Waiting for the agent to push a screen...</p></body></html>`;
 
 const frameTemplate = fs.readFileSync(path.join(__dirname, 'frame-template.html'), 'utf-8');

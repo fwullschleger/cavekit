@@ -11,7 +11,7 @@ TMPDIR="$(mktemp -d)"
 trap 'rm -rf "$TMPDIR"' EXIT
 
 PROJECT_ROOT="$TMPDIR/project"
-GLOBAL_CONFIG="$TMPDIR/home/.blueprint/config"
+GLOBAL_CONFIG="$TMPDIR/home/.cavekit/config"
 
 mkdir -p "$PROJECT_ROOT"
 

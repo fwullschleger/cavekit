@@ -3,7 +3,7 @@ package tui
 import (
 	"context"
 
-	"github.com/julb/blueprint-monitor/internal/tmux"
+	"github.com/JuliusBrussee/cavekit/internal/tmux"
 )
 
 // TerminalTab manages a separate tmux session for shell access in the worktree.

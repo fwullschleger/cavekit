@@ -12,17 +12,17 @@ func TestDiscoverAll(t *testing.T) {
 	projectRoot := filepath.Join(parent, "myproject")
 	os.MkdirAll(projectRoot, 0755)
 
-	// Create blueprint worktrees
-	wt1 := filepath.Join(parent, "myproject-blueprint-auth")
+	// Create cavekit worktrees
+	wt1 := filepath.Join(parent, "myproject-cavekit-auth")
 	os.MkdirAll(wt1, 0755)
 
-	wt2 := filepath.Join(parent, "myproject-blueprint-payments")
+	wt2 := filepath.Join(parent, "myproject-cavekit-payments")
 	os.MkdirAll(wt2, 0755)
 	// Add ralph loop marker to payments
 	os.MkdirAll(filepath.Join(wt2, ".claude"), 0755)
 	os.WriteFile(filepath.Join(wt2, ".claude", "ralph-loop.local.md"), []byte("active"), 0644)
 
-	// Non-blueprint dir (should be excluded)
+	// Non-cavekit dir (should be excluded)
 	os.MkdirAll(filepath.Join(parent, "myproject-other"), 0755)
 
 	results, err := DiscoverAll(projectRoot)
@@ -43,7 +43,7 @@ func TestDiscoverAll(t *testing.T) {
 	if !ok {
 		t.Fatal("auth worktree not found")
 	}
-	if auth.Branch != "blueprint/auth" {
+	if auth.Branch != "cavekit/auth" {
 		t.Errorf("auth branch = %q", auth.Branch)
 	}
 	if auth.HasRalphLoop {

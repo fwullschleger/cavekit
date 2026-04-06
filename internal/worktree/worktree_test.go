@@ -5,15 +5,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/julb/blueprint-monitor/internal/exec"
+	"github.com/JuliusBrussee/cavekit/internal/exec"
 )
 
 func TestWorktreePath(t *testing.T) {
 	tests := []struct {
 		root, site, want string
 	}{
-		{"/home/user/myproject", "auth", "/home/user/myproject-blueprint-auth"},
-		{"/code/sdd-os", "build", "/code/sdd-os-blueprint-build"},
+		{"/home/user/myproject", "auth", "/home/user/myproject-cavekit-auth"},
+		{"/code/cavekit", "build", "/code/cavekit-cavekit-build"},
 	}
 	for _, tt := range tests {
 		got := WorktreePath(tt.root, tt.site)
@@ -24,8 +24,8 @@ func TestWorktreePath(t *testing.T) {
 }
 
 func TestBranchName(t *testing.T) {
-	if got := BranchName("auth"); got != "blueprint/auth" {
-		t.Errorf("BranchName(auth) = %q, want %q", got, "blueprint/auth")
+	if got := BranchName("auth"); got != "cavekit/auth" {
+		t.Errorf("BranchName(auth) = %q, want %q", got, "cavekit/auth")
 	}
 }
 
@@ -45,7 +45,7 @@ func TestManager_Create_NewBranch(t *testing.T) {
 			return exec.Result{ExitCode: 1, Stderr: "unknown revision"}, nil
 		}
 		// branch create
-		if args == "branch blueprint/auth" {
+		if args == "branch cavekit/auth" {
 			return exec.Result{ExitCode: 0}, nil
 		}
 		// worktree add
@@ -60,7 +60,7 @@ func TestManager_Create_NewBranch(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
-	if path != "/code/myproject-blueprint-auth" {
+	if path != "/code/myproject-cavekit-auth" {
 		t.Errorf("path = %q, unexpected", path)
 	}
 }
@@ -70,7 +70,7 @@ func TestManager_Create_ExistingWorktree(t *testing.T) {
 	mock.OnCommand("git", func(c exec.Call) (exec.Result, error) {
 		if strings.Contains(strings.Join(c.Args, " "), "worktree list") {
 			return exec.Result{
-				Stdout:   "worktree /code/myproject-blueprint-auth\nbranch refs/heads/blueprint/auth\n",
+				Stdout:   "worktree /code/myproject-cavekit-auth\nbranch refs/heads/cavekit/auth\n",
 				ExitCode: 0,
 			}, nil
 		}
@@ -82,7 +82,7 @@ func TestManager_Create_ExistingWorktree(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
-	if path != "/code/myproject-blueprint-auth" {
+	if path != "/code/myproject-cavekit-auth" {
 		t.Errorf("path = %q, unexpected", path)
 	}
 	// Should have only called worktree list (no create commands)

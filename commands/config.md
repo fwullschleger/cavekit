@@ -1,13 +1,13 @@
 ---
 name: bp-config
-description: Show or update Blueprint execution model presets
+description: Show or update Cavekit execution model presets
 argument-hint: "[list | preset <expensive|quality|balanced|fast> [--global]]"
 allowed-tools: ["Bash(${CLAUDE_PLUGIN_ROOT}/scripts/bp-config.sh:*)"]
 ---
 
-# Blueprint Config — Execution Presets
+# Cavekit Config — Execution Presets
 
-Use this command to inspect or change the Blueprint execution preset that maps task types to `opus`, `sonnet`, and `haiku`.
+Use this command to inspect or change the Cavekit execution preset that maps task types to `opus`, `sonnet`, and `haiku`.
 
 ## Supported Usage
 
@@ -16,9 +16,9 @@ Use this command to inspect or change the Blueprint execution preset that maps t
 - `/bp:config list`
   Show the built-in presets and their model mappings.
 - `/bp:config preset <name>`
-  Set the project override in `.blueprint/config`.
+  Set the project override in `.cavekit/config`.
 - `/bp:config preset <name> --global`
-  Set the user-level default in `~/.blueprint/config`.
+  Set the user-level default in `~/.cavekit/config`.
 
 If the arguments do not match one of those forms, show this usage summary and stop.
 

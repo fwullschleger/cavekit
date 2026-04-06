@@ -1,4 +1,4 @@
-module github.com/julb/blueprint-monitor
+module github.com/JuliusBrussee/cavekit
 
 go 1.26.1
 

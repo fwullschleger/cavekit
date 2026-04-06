@@ -41,10 +41,10 @@ interpretation biases.
 - Architectural over-engineering or under-engineering
 - Missing error handling patterns
 - Security vulnerabilities the builder didn't consider
-- Blueprint requirements that were technically met but poorly implemented
+- Cavekit requirements that were technically met but poorly implemented
 - Dead code, unused imports, and unnecessary complexity
 - Performance pitfalls that only manifest at scale
-- Missing edge cases not covered by the blueprint
+- Missing edge cases not covered by the cavekit
 
 ---
 
@@ -167,7 +167,7 @@ You are a senior code reviewer. Review the following code changes critically.
 - Security vulnerabilities (injection, auth bypass, data exposure)
 - Missing error handling and edge cases
 - Performance issues (N+1 queries, unnecessary allocations, blocking calls)
-- Blueprint compliance: does this implementation match the requirements?
+- Cavekit compliance: does this implementation match the requirements?
 - Code quality: naming, structure, unnecessary complexity
 
 ## What NOT to do:
@@ -175,8 +175,8 @@ You are a senior code reviewer. Review the following code changes critically.
 - Do not suggest stylistic changes unless they affect readability significantly
 - Do not rewrite the code -- describe the problem and where it is
 
-## Blueprint requirements for this feature:
-{BLUEPRINT_REQUIREMENTS}
+## Cavekit requirements for this feature:
+{CAVEKIT_REQUIREMENTS}
 
 ## Code changes:
 {DIFF_CONTENT}
@@ -196,9 +196,9 @@ For each finding:
 
 **Process:**
 1. Builder agent drafts an architecture or plan
-2. Send the plan + blueprints to the peer review model
+2. Send the plan + kits to the peer review model
 3. Peer reviewer proposes alternative approaches or critiques the plan
-4. Builder validates both approaches against blueprints
+4. Builder validates both approaches against kits
 5. Human makes the final decision if there is a genuine trade-off
 
 **Architecture Review Prompt Template:**
@@ -207,14 +207,14 @@ You are a systems architect reviewing a proposed design. Your goal is to
 find weaknesses, over-engineering, missing considerations, and better
 alternatives.
 
-## Blueprints (what must be built):
-{BLUEPRINT_CONTENT}
+## Kits (what must be built):
+{CAVEKIT_CONTENT}
 
 ## Proposed architecture:
 {PLAN_CONTENT}
 
 ## Evaluate:
-1. Does this architecture satisfy all blueprint requirements?
+1. Does this architecture satisfy all cavekit requirements?
 2. Is it over-engineered for the scope?
 3. Are there simpler alternatives that meet the same requirements?
 4. What failure modes exist? How does the system recover?
@@ -292,9 +292,9 @@ explain what additional information would break the tie.
 **Process:**
 1. Run test coverage analysis on the codebase
 2. Generate a coverage report (which files/functions are covered)
-3. Send the coverage report + blueprints to the peer review model
+3. Send the coverage report + kits to the peer review model
 4. Peer reviewer identifies: untested edge cases, missing integration tests,
-   blueprint requirements without corresponding tests
+   cavekit requirements without corresponding tests
 5. Builder adds missing tests
 
 ---
@@ -320,22 +320,22 @@ Create two prompt files:
 
 **`prompts/build.md`** -- The builder prompt:
 ```markdown
-Implement the requirements in the blueprint. Read implementation tracking for
+Implement the requirements in the cavekit. Read implementation tracking for
 context on what has been done. Read any review findings and address them.
 
-Input: blueprints/, plans/, impl/, review-findings.md (if exists)
+Input: kits/, plans/, impl/, review-findings.md (if exists)
 Output: source code, updated impl tracking
-Exit: all blueprint requirements implemented, all review findings addressed
+Exit: all cavekit requirements implemented, all review findings addressed
 ```
 
 **`prompts/review.md`** -- The reviewer prompt:
 ```markdown
-Review the current implementation against the blueprint. Be critical. Find
+Review the current implementation against the cavekit. Be critical. Find
 bugs, missing requirements, security issues, and quality problems.
 
-Input: blueprints/, plans/, source code, impl/
+Input: kits/, plans/, source code, impl/
 Output: review-findings.md
-Exit: all source files reviewed against all blueprint requirements
+Exit: all source files reviewed against all cavekit requirements
 ```
 
 ### Running Peer Review Iteration
@@ -357,7 +357,7 @@ builder's latest committed code; the builder reads the reviewer's latest
 The peer review loop has converged when:
 - The reviewer's findings drop to zero or only LOW severity items remain
 - The builder's diffs between iterations are minimal
-- All blueprint requirements have been reviewed and confirmed as met
+- All cavekit requirements have been reviewed and confirmed as met
 
 ---
 
@@ -407,15 +407,15 @@ from diverse perspectives.
 
 ---
 
-## Integration with Blueprint Lifecycle
+## Integration with Cavekit Lifecycle
 
 Peer review fits into the DABI lifecycle at multiple points:
 
 | DABI Phase | Peer Review Role |
 |-------------|-----------------|
-| **Draft** | Review blueprints for completeness, ambiguity, missing edge cases |
+| **Draft** | Review kits for completeness, ambiguity, missing edge cases |
 | **Architect** | Architecture Review: challenge the plan before implementation begins |
-| **Build** | Code Review: review implementation against blueprints after each feature |
+| **Build** | Code Review: review implementation against kits after each feature |
 | **Inspect** | Peer Review iteration loop: alternate build/review convergence |
 | **Monitor** | Test Coverage Review: validate that monitoring covers all failure modes |
 
@@ -429,5 +429,5 @@ that neither automated tests nor single-agent convergence loops find.
 - **convergence-monitoring** -- How to detect when peer review iterations have converged
 - **validation-first** -- Peer review is Gate 6 (human/agent review) in the validation pipeline
 - **prompt-pipeline** -- How to structure builder and reviewer prompts in the DABI pipeline
-- **revision** -- When the peer reviewer finds a blueprint gap, revise the fix into blueprints
+- **revision** -- When the peer reviewer finds a cavekit gap, revise the fix into kits
 - **impl-tracking** -- Record peer review findings in implementation tracking documents

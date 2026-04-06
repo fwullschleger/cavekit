@@ -5,9 +5,9 @@ argument-hint: "[FILE] [--filter PATTERN] [--peer-review] [--max-iterations N] [
 allowed-tools: ["Bash(${CLAUDE_PLUGIN_ROOT}/scripts/setup-build.sh:*)", "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/bp-config.sh:*)", "Bash(git *)"]
 ---
 
-# Blueprint Build — Autonomous Implementation
+# Cavekit Build — Autonomous Implementation
 
-This is the third phase of Blueprint. Execute the setup script:
+This is the third phase of Cavekit. Execute the setup script:
 
 ```!
 "${CLAUDE_PLUGIN_ROOT}/scripts/setup-build.sh" $ARGUMENTS
@@ -23,16 +23,16 @@ Before starting waves:
 
 ## Pre-flight Coverage Check
 
-Before entering the execution loop, validate that the build site covers all blueprint requirements:
+Before entering the execution loop, validate that the build site covers all cavekit requirements:
 
-1. Read the build site and all blueprint files referenced in it
+1. Read the build site and all cavekit files referenced in it
 2. If the build site contains a **Coverage Matrix** section, scan it for any rows with status `GAP`
-3. If no Coverage Matrix exists, perform a quick manual check: for each blueprint requirement, confirm at least one task in the build site references it
+3. If no Coverage Matrix exists, perform a quick manual check: for each cavekit requirement, confirm at least one task in the build site references it
 4. **If gaps are found**, report them before starting:
    ```
    ⚠ COVERAGE GAPS DETECTED — {n} acceptance criteria have no assigned task:
-     - blueprint-{domain}.md R{n}: {criterion text}
-     - blueprint-{domain}.md R{n}: {criterion text}
+     - cavekit-{domain}.md R{n}: {criterion text}
+     - cavekit-{domain}.md R{n}: {criterion text}
    
    Run `/bp:architect` to regenerate the build site with full coverage, or continue with known gaps.
    ```
@@ -41,7 +41,7 @@ Before entering the execution loop, validate that the build site covers all blue
 
 ## If site selection is required
 
-If the output contains `BLUEPRINT_SITE_SELECTION_REQUIRED=true`, multiple build sites/plans were found. **Ask the user which one to implement.** Then re-run with `--filter <their-choice>`.
+If the output contains `CAVEKIT_SITE_SELECTION_REQUIRED=true`, multiple build sites/plans were found. **Ask the user which one to implement.** Then re-run with `--filter <their-choice>`.
 
 ## Execution Loop
 
@@ -67,7 +67,7 @@ Once the setup script completes (outputs the ralph prompt), you run the executio
    **2+ ready tasks** → Partition the frontier into a small set of coherent work packets, then parallelize those. Optimize for throughput, not raw agent count.
 
    **Build work packets using these rules:**
-   - Group tasks when they touch the same subsystem, blueprint/domain, or expected file set
+   - Group tasks when they touch the same subsystem, cavekit/domain, or expected file set
    - Group small related tasks when the combined scope is still coherent for one agent
    - Split large, risky, or file-disjoint tasks into separate packets
    - Keep ownership clean: each packet should have a clear primary file/module surface
@@ -87,19 +87,19 @@ Once the setup script completes (outputs the ralph prompt), you run the executio
    - Domain/spec: {spec_name}
    - Requirement IDs: {requirement_ids}
    BUILD SITE: {path to build site}
-   BLUEPRINTS: {paths to relevant blueprint files}
+   CAVEKITS: {paths to relevant cavekit files}
    DESIGN SYSTEM: {path to DESIGN.md if it exists and packet contains UI tasks, or 'None — no design system'}
    DESIGN REFERENCES: {specific DESIGN.md sections relevant to this packet's UI tasks, or 'N/A'}
    EXPECTED FILE OWNERSHIP: {files or modules this packet should own}
 
-   ACCEPTANCE CRITERIA (from blueprints):
+   ACCEPTANCE CRITERIA (from kits):
    {paste the acceptance criteria for each task in this packet}
 
    DEAD ENDS TO AVOID:
    {paste relevant dead ends, or 'None'}
 
    INSTRUCTIONS:
-   1. Read each listed blueprint requirement for full context
+   1. Read each listed cavekit requirement for full context
    2. Implement the packet as one coherent slice of work
    3. Keep changes inside the owned files/modules unless a requirement forces expansion
    4. Write tests as needed
@@ -172,23 +172,23 @@ Waves executed: {N}
 Tasks completed: {done}/{total}
 ```
 
-### Post-Build: Blueprint Verification
+### Post-Build: Cavekit Verification
 
-Before updating CLAUDE.md, verify that the build actually satisfies the blueprints:
+Before updating CLAUDE.md, verify that the build actually satisfies the kits:
 
-1. Read all blueprint files and the build site's Coverage Matrix (if present)
-2. For each blueprint requirement and its acceptance criteria, cross-reference against impl tracking:
+1. Read all cavekit files and the build site's Coverage Matrix (if present)
+2. For each cavekit requirement and its acceptance criteria, cross-reference against impl tracking:
    - Is the task marked DONE in impl tracking?
    - Does the task's scope actually cover this specific criterion? (A task being DONE does not mean every criterion it was supposed to cover is actually met)
 3. Produce a brief coverage summary:
    ```
-   ═══ Blueprint Verification ═══
+   ═══ Cavekit Verification ═══
    Requirements: {done}/{total}
    Acceptance Criteria: {verified}/{total}
    Gaps: {list any unmet criteria, or "None"}
    ```
 4. If gaps are found (criteria not covered by completed tasks):
-   - Log each gap with its blueprint reference
+   - Log each gap with its cavekit reference
    - Add the gaps as new tasks to the build site (append to the highest tier + 1)
    - Report: `{n} gap(s) found — {n} remediation tasks added to build site. Run /bp:build again to address.`
 5. If no gaps: proceed to CLAUDE.md hierarchy update
@@ -197,19 +197,19 @@ Before updating CLAUDE.md, verify that the build actually satisfies the blueprin
 
 After BUILD COMPLETE and before the completion promise, update the context hierarchy:
 
-1. **Read the build site** to get task-to-blueprint-requirement mappings
+1. **Read the build site** to get task-to-cavekit-requirement mappings
 2. **Read `git diff --name-only` against the pre-build ref** to identify which source files were created/modified during the build
 3. **For each source directory that was touched** (e.g., `src/auth/`, `src/api/`):
-   - If no `CLAUDE.md` exists in that directory: create one with blueprint/plan references derived from the tasks that touched those files:
+   - If no `CLAUDE.md` exists in that directory: create one with cavekit/plan references derived from the tasks that touched those files:
      ```markdown
      # {Module Name}
 
      Implements:
-     - blueprint-{domain}.md R{n} ({Requirement Name})
+     - cavekit-{domain}.md R{n} ({Requirement Name})
 
      Build tasks: T-{ids} (build-site.md)
      ```
-   - If `CLAUDE.md` already exists: append any new blueprint references not already listed (never remove existing content)
+   - If `CLAUDE.md` already exists: append any new cavekit references not already listed (never remove existing content)
    - For UI component directories: if `DESIGN.md` exists at project root, include `Visual design: follows DESIGN.md Section {N} ({section name})` in the CLAUDE.md
 4. **Update `context/impl/impl-overview.md`** with current domain statuses (tasks done/total per domain)
 5. **Update `context/plans/plan-overview.md`** (or `context/sites/` equivalent if legacy) with build site completion status

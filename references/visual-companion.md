@@ -33,10 +33,10 @@ The server watches a directory for HTML files and serves the newest one to the b
 The visual companion server lives in `scripts/visual-companion/`. It's a zero-dependency Node.js server that watches a directory for HTML files and serves them with WebSocket live-reload.
 
 ```bash
-# Start with project persistence (mockups saved to .blueprint/companion/)
+# Start with project persistence (mockups saved to .cavekit/companion/)
 scripts/visual-companion/start-server.sh --project-dir $(pwd)
 
-# Returns JSON: {"type":"server-started","port":52341,"url":"http://localhost:52341","screen_dir":"/path/to/.blueprint/companion/12345-1706000000"}
+# Returns JSON: {"type":"server-started","port":52341,"url":"http://localhost:52341","screen_dir":"/path/to/.cavekit/companion/12345-1706000000"}
 ```
 
 Save `screen_dir` from the response. Tell the user to open the URL.
@@ -53,11 +53,11 @@ Save `screen_dir` from the response. Tell the user to open the URL.
 scripts/visual-companion/stop-server.sh $SCREEN_DIR
 ```
 
-Persistent directories (`.blueprint/companion/`) are kept for later reference. Only `/tmp` sessions get cleaned up.
+Persistent directories (`.cavekit/companion/`) are kept for later reference. Only `/tmp` sessions get cleaned up.
 
 ## The Loop
 
-1. **Write HTML** to a new file in `screen_dir` (or `.blueprint/brainstorm/`):
+1. **Write HTML** to a new file in `screen_dir` (or `.cavekit/brainstorm/`):
    - Use semantic filenames: `architecture.html`, `domain-boundaries.html`, `data-flow.html`
    - Never reuse filenames — each screen gets a fresh file
    - Use the Write tool — never cat/heredoc

@@ -3,9 +3,9 @@ name: bp-init
 description: "Bootstrap the context hierarchy — creates all directories, CLAUDE.md files, and index files"
 ---
 
-# Blueprint Init — Bootstrap Context Hierarchy
+# Cavekit Init — Bootstrap Context Hierarchy
 
-Creates the full context hierarchy for a Blueprint project. Run once at the start of a project, or re-run safely — it only creates what's missing.
+Creates the full context hierarchy for a Cavekit project. Run once at the start of a project, or re-run safely — it only creates what's missing.
 
 ## Properties
 
@@ -28,7 +28,7 @@ Record which directories exist — you'll create CLAUDE.md files for them in Ste
 Create these directories if they don't exist:
 - `context/`
 - `context/refs/`
-- `context/blueprints/`
+- `context/kits/`
 - `context/designs/`
 - `context/plans/`
 - `context/impl/`
@@ -43,11 +43,11 @@ Create each file below **only if it does not already exist**. Never overwrite.
 ```markdown
 # Context Hierarchy
 
-This project uses Blueprint's context hierarchy.
+This project uses Cavekit's context hierarchy.
 
 ## Tiers
 - refs/ — Source material (Tier 1: what IS). Read-only.
-- blueprints/ — Requirements (Tier 2: what MUST BE). Start at blueprint-overview.md.
+- kits/ — Requirements (Tier 2: what MUST BE). Start at cavekit-overview.md.
 - designs/ — Visual design system (cross-cutting constraint). Start at DESIGN.md.
 - plans/ — Task graphs (Tier 3: HOW). Start at plan-overview.md.
 - impl/ — Progress tracking (Tier 4: what WAS DONE). Start at impl-overview.md.
@@ -63,23 +63,23 @@ For UI work, always read DESIGN.md at the project root first.
 ```markdown
 # Reference Materials
 
-Source of truth that blueprints are derived from. Read-only.
+Source of truth that kits are derived from. Read-only.
 
 ## Conventions
 - Organized by source in subdirectories (e.g., prd/, old-code-docs/, api-spec/)
 - Agents read but never modify these files
-- Blueprints reference specific files and sections via file:line
+- Kits reference specific files and sections via file:line
 ```
 
-### `context/blueprints/CLAUDE.md`
+### `context/kits/CLAUDE.md`
 
 ```markdown
-# Blueprints
+# Kits
 
-Blueprints define WHAT needs implementing. They are implementation-agnostic.
+Kits define WHAT needs implementing. They are implementation-agnostic.
 
 ## Conventions
-- Start with blueprint-overview.md for the domain index
+- Start with cavekit-overview.md for the domain index
 - R-numbered requirements (R1, R2, R3...)
 - Every requirement has testable acceptance criteria
 - Never prescribe HOW — that belongs in plans/
@@ -92,12 +92,12 @@ Blueprints define WHAT needs implementing. They are implementation-agnostic.
 ```markdown
 # Plans
 
-Plans define HOW to implement blueprints. They contain task dependency graphs.
+Plans define HOW to implement kits. They contain task dependency graphs.
 
 ## Conventions
 - Start with plan-overview.md for the build site index
 - Build sites use T-numbered tasks organized into dependency tiers
-- Each task references blueprint requirements by ID
+- Each task references cavekit requirements by ID
 - build-site.md is the primary build site
 - build-site-{feature}.md for feature-specific sites
 ```
@@ -140,7 +140,7 @@ For each detected source directory from Step 1 (e.g., `src/`, `tests/`, `scripts
 ```markdown
 # Source Code
 
-See context/blueprints/ for requirements this code implements.
+See context/kits/ for requirements this code implements.
 See context/plans/ for task dependency graphs.
 ```
 
@@ -163,7 +163,7 @@ Utility scripts for this project.
 
 Create these **only if they don't already exist**:
 
-### `context/blueprints/blueprint-overview.md`
+### `context/kits/cavekit-overview.md`
 
 ```markdown
 ---
@@ -171,7 +171,7 @@ created: "{CURRENT_DATE_UTC}"
 last_edited: "{CURRENT_DATE_UTC}"
 ---
 
-# Blueprint Overview
+# Cavekit Overview
 
 ## Project
 {Project name — read from README.md, package.json, or directory name}
@@ -185,7 +185,7 @@ last_edited: "{CURRENT_DATE_UTC}"
 |----------|---------------|-----------------|
 
 ## Dependency Graph
-No domains defined yet. Run `/bp:draft` to create blueprints.
+No domains defined yet. Run `/bp:draft` to create kits.
 ```
 
 ### `context/plans/plan-overview.md`
@@ -239,7 +239,7 @@ If the user accepts:
 4. Report which files were moved
 
 If the user declines:
-- Log: "Keeping context/sites/. Blueprint commands will check both locations."
+- Log: "Keeping context/sites/. Cavekit commands will check both locations."
 - Do NOT migrate. The fallback is permanent.
 
 ## Step 6: Report and Commit
@@ -262,7 +262,7 @@ Report what was created:
 - {migration status if applicable}
 
 ### Next Step
-Run `/bp:draft` to start writing blueprints.
+Run `/bp:draft` to start writing kits.
 ```
 
-Then commit the scaffolding with message: "Initialize Blueprint context hierarchy"
+Then commit the scaffolding with message: "Initialize Cavekit context hierarchy"

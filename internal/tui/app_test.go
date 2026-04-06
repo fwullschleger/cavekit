@@ -118,8 +118,8 @@ func TestApp_View_AfterResize(t *testing.T) {
 	view := updated.View()
 
 	// With no instances selected, the right panel shows the dashboard
-	if !strings.Contains(view, "Blueprint") {
-		t.Error("view should contain Blueprint header or dashboard title")
+	if !strings.Contains(view, "Cavekit") {
+		t.Error("view should contain Cavekit header or dashboard title")
 	}
 	if !strings.Contains(view, "quit") {
 		t.Error("view should contain menu with quit")

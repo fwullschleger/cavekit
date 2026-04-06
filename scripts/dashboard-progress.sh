@@ -59,7 +59,7 @@ render() {
 
   emit() { ((line < max)) && buf+="${1}${EL}"$'\n' && line=$((line + 1)); }
 
-  emit "${B}${BL} BLUEPRINT${R}"
+  emit "${B}${BL} CAVEKIT${R}"
   emit "${BL}${D}${hr}${R}"
 
   # ── Ralph Loop state ──

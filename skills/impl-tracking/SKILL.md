@@ -407,7 +407,7 @@ This removes the orientation cost at the start of each session — agents begin 
 
 ## Integration with Other Skills
 
-### With `bp:blueprint-writing`
+### With `bp:cavekit-writing`
 
 Implementation tracking references specs by requirement ID. When a task is completed, its acceptance criteria map back to spec requirements. When dead ends are found, they may reveal spec gaps that need revision.
 

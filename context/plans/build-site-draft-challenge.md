@@ -3,37 +3,37 @@ created: "2026-03-31T00:00:00Z"
 last_edited: "2026-03-31T00:00:00Z"
 ---
 
-# Build Site — Dual-Model Blueprint Drafting (Design Challenge)
+# Build Site — Dual-Model Cavekit Drafting (Design Challenge)
 
-7 tasks across 3 tiers from 1 blueprint (+ codex-bridge dependency).
+7 tasks across 3 tiers from 1 cavekit (+ codex-bridge dependency).
 
 ---
 
 ## Tier 0 — No Dependencies (Start Here)
 
-| Task | Title | Blueprint | Requirement | Effort |
+| Task | Title | Cavekit | Requirement | Effort |
 |------|-------|-----------|-------------|--------|
-| T-301 | Design challenge prompt template (domain decomposition, coverage, ambiguity focus) | blueprint-draft-challenge.md | R5 | M |
-| T-302 | Challenge output parser (categorized findings with severity) | blueprint-draft-challenge.md | R2 | M |
+| T-301 | Design challenge prompt template (domain decomposition, coverage, ambiguity focus) | cavekit-draft-challenge.md | R5 | M |
+| T-302 | Challenge output parser (categorized findings with severity) | cavekit-draft-challenge.md | R2 | M |
 
 ---
 
 ## Tier 1 — Depends on Tier 0
 
-| Task | Title | Blueprint | Requirement | blockedBy | Effort |
+| Task | Title | Cavekit | Requirement | blockedBy | Effort |
 |------|-------|-----------|-------------|-----------|--------|
-| T-303 | Codex design challenge invocation (send all blueprints + overview, receive findings) | blueprint-draft-challenge.md | R1 | T-301, T-302 | M |
-| T-304 | Advisory findings collector and user-facing presentation format | blueprint-draft-challenge.md | R2 | T-302 | S |
+| T-303 | Codex design challenge invocation (send all kits + overview, receive findings) | cavekit-draft-challenge.md | R1 | T-301, T-302 | M |
+| T-304 | Advisory findings collector and user-facing presentation format | cavekit-draft-challenge.md | R2 | T-302 | S |
 
 ---
 
 ## Tier 2 — Depends on Tier 1
 
-| Task | Title | Blueprint | Requirement | blockedBy | Effort |
+| Task | Title | Cavekit | Requirement | blockedBy | Effort |
 |------|-------|-----------|-------------|-----------|--------|
-| T-305 | Auto-fix loop — Claude addresses critical findings, re-challenges (max 2 cycles) | blueprint-draft-challenge.md | R3 | T-303 | L |
-| T-306 | Draft flow integration — insert between blueprint-reviewer and user review gate | blueprint-draft-challenge.md | R4 | T-303, T-304 | M |
-| T-307 | Graceful degradation — skip challenge when Codex unavailable, log timing | blueprint-draft-challenge.md | R4 | T-303 | S |
+| T-305 | Auto-fix loop — Claude addresses critical findings, re-challenges (max 2 cycles) | cavekit-draft-challenge.md | R3 | T-303 | L |
+| T-306 | Draft flow integration — insert between cavekit-reviewer and user review gate | cavekit-draft-challenge.md | R4 | T-303, T-304 | M |
+| T-307 | Graceful degradation — skip challenge when Codex unavailable, log timing | cavekit-draft-challenge.md | R4 | T-303 | S |
 
 ---
 
@@ -77,13 +77,13 @@ Requires from `build-site-codex.md`:
 
 ## Architect Report
 
-### Blueprints Read: 1 (+ codex-bridge for shared infrastructure)
+### Kits Read: 1 (+ codex-bridge for shared infrastructure)
 ### Tasks Generated: 7
 ### Tiers: 3
 ### Tier 0 Tasks: 2 (can run in parallel immediately)
 
 ### Task-to-Requirement Coverage
-| Blueprint | Requirement | Tasks |
+| Cavekit | Requirement | Tasks |
 |-----------|-------------|-------|
 | draft-challenge | R1 (Design Challenge Invocation) | T-303 |
 | draft-challenge | R2 (Challenge Output Format) | T-302, T-304 |

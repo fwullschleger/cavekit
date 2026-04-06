@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/julb/blueprint-monitor/internal/session"
+	"github.com/JuliusBrussee/cavekit/internal/session"
 )
 
 func TestInstanceList_Empty(t *testing.T) {

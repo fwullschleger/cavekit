@@ -5,8 +5,12 @@
 <h3 align="center">Specification-driven development for AI coding agents</h3>
 
 <p align="center">
-  A Claude Code plugin that turns natural language into blueprints,<br>
-  blueprints into parallel build plans, and build plans into working software —<br>
+  Part of the <a href="https://github.com/JuliusBrussee/caveman">Caveman</a> ecosystem
+</p>
+
+<p align="center">
+  A Claude Code plugin that turns natural language into kits,<br>
+  kits into parallel build plans, and build plans into working software —<br>
   with automated iteration, validation, and dual-model adversarial review via Codex.
 </p>
 
@@ -42,30 +46,30 @@ AI coding agents are powerful, but they fail in predictable ways:
 - **They can't parallelize.** One agent, one task, one branch — even when the work is independent.
 - **They don't iterate.** A single pass produces a rough draft, not production code.
 
-Blueprint fixes all of this.
+Cavekit fixes all of this.
 
 ---
 
 ## The Idea
 
-Instead of prompting an agent and hoping for the best, Blueprint introduces a **specification layer** between your intent and the code. You describe what you want. The system decomposes it into domain blueprints with numbered requirements and testable acceptance criteria. Then it builds from those blueprints — not from memory, not from vibes — in an automated loop that validates every step.
+Instead of prompting an agent and hoping for the best, Cavekit introduces a **specification layer** between your intent and the code. You describe what you want. The system decomposes it into domain kits with numbered requirements and testable acceptance criteria. Then it builds from those kits — not from memory, not from vibes — in an automated loop that validates every step.
 
 ```
                         ┌─── Task 1 ─── Agent A ───┐
                         │                           │
-You ── /bp:draft ──► Blueprints ── /bp:architect ──► Build Site ──┤─── Task 2 ─── Agent B ───┤──► done
+You ── /bp:draft ──► Kits ── /bp:architect ──► Build Site ──┤─── Task 2 ─── Agent B ───┤──► done
                         │                           │
                         └─── Task 3 ─── Agent C ───┘
 ```
 
-The blueprints are the source of truth. Agents read them, build from them, and validate against them. When something breaks, the system traces the failure back to the blueprint — not the code.
+The kits are the source of truth. Agents read them, build from them, and validate against them. When something breaks, the system traces the failure back to the cavekit — not the code.
 
 ---
 
-## Without Blueprint vs. With Blueprint
+## Without Cavekit vs. With Cavekit
 
 <table>
-<tr><th width="50%">Without Blueprint</th><th width="50%">With Blueprint</th></tr>
+<tr><th width="50%">Without Cavekit</th><th width="50%">With Cavekit</th></tr>
 <tr>
 <td>
 
@@ -87,16 +91,16 @@ The agent guessed what you wanted.
 
 ```
 > /bp:draft
-  4 blueprints, 22 requirements, 69 criteria
+  4 kits, 22 requirements, 69 criteria
 
 > /bp:architect
   34 tasks across 5 dependency tiers
 
 > /bp:build
   18 iterations — each validated against
-  the blueprint before committing
+  the cavekit before committing
 
-  BLUEPRINT COMPLETE
+  CAVEKIT COMPLETE
 ```
 
 Every line of code traces to a requirement.
@@ -111,21 +115,21 @@ Every requirement has acceptance criteria.
 ## Install
 
 ```bash
-git clone https://github.com/JuliusBrussee/blueprint.git ~/.blueprint
-cd ~/.blueprint && ./install.sh
+git clone https://github.com/JuliusBrussee/cavekit.git ~/.cavekit
+cd ~/.cavekit && ./install.sh
 ```
 
-This registers the Blueprint plugin with Claude Code, syncs it into your local Codex plugin marketplace, links Codex prompt files into `~/.codex/prompts/`, and installs the `blueprint` CLI. Restart Claude Code and Codex after installing.
+This registers the Cavekit plugin with Claude Code, syncs it into your local Codex plugin marketplace, links Codex prompt files into `~/.codex/prompts/`, and installs the `cavekit` CLI. Restart Claude Code and Codex after installing.
 
 **Requirements:** [Claude Code](https://docs.anthropic.com/en/docs/claude-code), git, macOS/Linux.
 
-**Optional:** [Codex](https://github.com/openai/codex) (`npm install -g @openai/codex`) — enables adversarial review at the design, build, and command levels. Blueprint works without it, but Codex makes it significantly harder to ship flawed specs and broken code.
+**Optional:** [Codex](https://github.com/openai/codex) (`npm install -g @openai/codex`) — enables adversarial review at the design, build, and command levels. Cavekit works without it, but Codex makes it significantly harder to ship flawed specs and broken code.
 
 ---
 
 ## How It Works
 
-Blueprint follows four phases — **Draft, Architect, Build, Inspect** — each driven by a slash command inside Claude Code. An optional **Research** phase grounds the design in real evidence before blueprints are written. A standalone `/bp:design` command creates and maintains a **DESIGN.md** design system that becomes a cross-cutting constraint enforced throughout all phases.
+Cavekit follows four phases — **Draft, Architect, Build, Inspect** — each driven by a slash command inside Claude Code. An optional **Research** phase grounds the design in real evidence before kits are written. A standalone `/bp:design` command creates and maintains a **DESIGN.md** design system that becomes a cross-cutting constraint enforced throughout all phases.
 
 ```
   RESEARCH         DRAFT            ARCHITECT           BUILD                INSPECT
@@ -134,7 +138,7 @@ Blueprint follows four phases — **Draft, Architect, Build, Inspect** — each 
   Multi-agent       building?"      map dependencies,    /bp:build            built vs.
   codebase +                        organize into        groups work          intended.
   web research     Produces:        tiered build site    into adaptive        Peer review.
-                   blueprints       + dependency graph   subagent packets     Trace to specs.
+                   kits       + dependency graph   subagent packets     Trace to specs.
   Produces:        with R-numbered                       tier by tier
   research brief   requirements     Produces:                                 Produces:
   in context/refs                   task graph           Codex reviews        findings report
@@ -143,7 +147,7 @@ Blueprint follows four phases — **Draft, Architect, Build, Inspect** — each 
                                                          synchronous)
 
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  /bp:design (standalone)  →  DESIGN.md  →  design tokens referenced in blueprints + tasks
+  /bp:design (standalone)  →  DESIGN.md  →  design tokens referenced in kits + tasks
                                              design-reviewer enforces across build + inspect
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
@@ -162,7 +166,7 @@ Dispatches 2–8 parallel subagents to explore the codebase and search the web f
 /bp:design
 ```
 
-Creates or imports a **DESIGN.md** design system that becomes a cross-cutting constraint layer across the entire pipeline. Once present, every blueprint references its design tokens, every task carries a Design Ref, and every build result is audited for design violations.
+Creates or imports a **DESIGN.md** design system that becomes a cross-cutting constraint layer across the entire pipeline. Once present, every cavekit references its design tokens, every task carries a Design Ref, and every build result is audited for design violations.
 
 Four sub-commands:
 
@@ -179,13 +183,13 @@ When DESIGN.md exists, the **design-reviewer agent** validates UI changes during
 /bp:draft
 ```
 
-You describe what you're building in natural language. Blueprint decomposes it into **domain blueprints** — structured documents with numbered requirements (R1, R2, ...) and testable acceptance criteria. Each blueprint is stack-independent and human-readable.
+You describe what you're building in natural language. Cavekit decomposes it into **domain kits** — structured documents with numbered requirements (R1, R2, ...) and testable acceptance criteria. Each cavekit is stack-independent and human-readable.
 
 When the project would benefit from it, the draft phase offers to run [deep research](#0-research--ground-the-design-optional) before design Q&A — grounding clarifying questions and approach proposals in real evidence rather than LLM priors.
 
-After the internal reviewer approves, blueprints are sent to Codex for a [design challenge](#design-challenge--catch-spec-flaws-before-building) — an adversarial review that catches decomposition flaws, missing requirements, and ambiguous criteria before any code is written.
+After the internal reviewer approves, kits are sent to Codex for a [design challenge](#design-challenge--catch-spec-flaws-before-building) — an adversarial review that catches decomposition flaws, missing requirements, and ambiguous criteria before any code is written.
 
-For existing codebases, `/bp:draft --from-code` reverse-engineers blueprints from your code and identifies gaps.
+For existing codebases, `/bp:draft --from-code` reverse-engineers kits from your code and identifies gaps.
 
 ### 2. Architect — plan the order
 
@@ -193,7 +197,7 @@ For existing codebases, `/bp:draft --from-code` reverse-engineers blueprints fro
 /bp:architect
 ```
 
-Reads all blueprints, breaks requirements into tasks, maps dependencies, and organizes everything into a **tiered build site** — a dependency graph where Tier 0 has no dependencies, Tier 1 depends only on Tier 0, and so on. The build site includes a **Coverage Matrix** that maps every individual acceptance criterion to its task(s), ensuring nothing specified in the blueprints gets lost in translation. This is what the build loop consumes.
+Reads all kits, breaks requirements into tasks, maps dependencies, and organizes everything into a **tiered build site** — a dependency graph where Tier 0 has no dependencies, Tier 1 depends only on Tier 0, and so on. The build site includes a **Coverage Matrix** that maps every individual acceptance criterion to its task(s), ensuring nothing specified in the kits gets lost in translation. This is what the build loop consumes.
 
 ### 3. Build — run the loop
 
@@ -201,7 +205,7 @@ Reads all blueprints, breaks requirements into tasks, maps dependencies, and org
 /bp:build
 ```
 
-Before starting, a **pre-flight coverage check** validates that the build site covers all blueprint acceptance criteria — gaps are flagged before any code is written. After completion, a **post-flight blueprint verification** cross-references what was built against the original blueprints, adding remediation tasks for any criteria that slipped through.
+Before starting, a **pre-flight coverage check** validates that the build site covers all cavekit acceptance criteria — gaps are flagged before any code is written. After completion, a **post-flight cavekit verification** cross-references what was built against the original kits, adding remediation tasks for any criteria that slipped through.
 
 The Ralph Loop. Each iteration:
 
@@ -211,7 +215,7 @@ The Ralph Loop. Each iteration:
   │  Read build site → Find next unblocked task              │
   │       │                                                  │
   │       ▼                                                  │
-  │  Load relevant blueprint + acceptance criteria           │
+  │  Load relevant cavekit + acceptance criteria           │
   │       │                                                  │
   │       ▼                                                  │
   │  Implement the task                                      │
@@ -237,7 +241,7 @@ At every tier boundary, [Codex adversarial review](#codex-adversarial-review) ga
 /bp:inspect
 ```
 
-Gap analysis compares what was built against what was specified. Peer review checks for bugs, security issues, and missed requirements. Everything traced back to blueprint requirements.
+Gap analysis compares what was built against what was specified. Peer review checks for bugs, security issues, and missed requirements. Everything traced back to cavekit requirements.
 
 ---
 
@@ -252,7 +256,7 @@ What are you building?
 > A REST API for task management. Users, projects, tasks with priorities
   and due dates, assignments. PostgreSQL.
 
-Created 4 blueprints (22 requirements, 69 acceptance criteria)
+Created 4 kits (22 requirements, 69 acceptance criteria)
 Next: /bp:architect
 
 > /bp:architect
@@ -263,7 +267,7 @@ Next: /bp:build
 Loop activated — 34 tasks, 20 max iterations.
 ...
 All tasks done. Build passes. Tests pass.
-BLUEPRINT COMPLETE — 34 tasks in 18 iterations.
+CAVEKIT COMPLETE — 34 tasks in 18 iterations.
 ```
 
 **Existing codebase:**
@@ -271,7 +275,7 @@ BLUEPRINT COMPLETE — 34 tasks in 18 iterations.
 ```
 > /bp:draft --from-code
 Exploring codebase... Next.js 14, Prisma, NextAuth.
-Created 6 blueprints — 4 requirements are gaps (not yet implemented).
+Created 6 kits — 4 requirements are gaps (not yet implemented).
 
 > /bp:architect --filter collaboration
 Generated build site: 8 tasks, 3 tiers
@@ -279,7 +283,7 @@ Generated build site: 8 tasks, 3 tiers
 > /bp:build
 Loop activated — 8 tasks.
 ...
-BLUEPRINT COMPLETE — 8 tasks in 8 iterations.
+CAVEKIT COMPLETE — 8 tasks in 8 iterations.
 ```
 
 See [example.md](example.md) for full annotated conversations.
@@ -326,15 +330,15 @@ Circuit breakers prevent infinite loops: 3 test failures → task marked BLOCKED
 
 ## Codex Adversarial Review
 
-Blueprint uses [Codex](https://github.com/openai/codex) (OpenAI's coding agent) as an adversarial reviewer — a second model with a fundamentally different perspective that catches blind spots Claude cannot see in its own output. This dual-model approach operates at three levels:
+Cavekit uses [Codex](https://github.com/openai/codex) (OpenAI's coding agent) as an adversarial reviewer — a second model with a fundamentally different perspective that catches blind spots Claude cannot see in its own output. This dual-model approach operates at three levels:
 
 ### Design Challenge — catch spec flaws before building
 
-After Claude drafts blueprints and the internal reviewer approves them, the entire blueprint set is sent to Codex for a **design challenge** — an adversarial review focused exclusively on architecture-level concerns:
+After Claude drafts kits and the internal reviewer approves them, the entire cavekit set is sent to Codex for a **design challenge** — an adversarial review focused exclusively on architecture-level concerns:
 
 ```
-  Claude drafts            Blueprint           Codex challenges         User reviews
-  blueprints ──────► reviewer approves ──────► the design ──────► blueprints + findings
+  Claude drafts            Cavekit           Codex challenges         User reviews
+  kits ──────► reviewer approves ──────► the design ──────► kits + findings
                                                     │
                                           Checks:   │
                                           • Domain decomposition quality
@@ -344,7 +348,7 @@ After Claude drafts blueprints and the internal reviewer approves them, the enti
                                           • Cross-domain coherence
 ```
 
-Codex returns structured findings categorized as **critical** (must fix before building) or **advisory** (worth considering). Critical findings trigger an auto-fix loop — Claude addresses them, Codex re-challenges, up to 2 cycles. Advisory findings are presented alongside blueprints at the user review gate.
+Codex returns structured findings categorized as **critical** (must fix before building) or **advisory** (worth considering). Critical findings trigger an auto-fix loop — Claude addresses them, Codex re-challenges, up to 2 cycles. Advisory findings are presented alongside kits at the user review gate.
 
 The design challenge is purpose-built to prohibit implementation feedback. No framework suggestions, no file path opinions — only design-level concerns that would cause real problems during the build phase.
 
@@ -380,7 +384,7 @@ The review-fix cycle runs up to 2 iterations per tier. After that, the build adv
 
 ### Speculative Review — eliminate gate latency
 
-By default, Blueprint runs the Codex review of the *previous* tier in the background while Claude builds the *current* tier:
+By default, Cavekit runs the Codex review of the *previous* tier in the background while Claude builds the *current* tier:
 
 ```
   Tier 0 complete ───────────────────────────────► Tier 1 complete
@@ -419,25 +423,25 @@ The gate integrates with Claude Code's permission system — commands already al
 
 All Codex features are **additive**. When Codex is not installed:
 
-- Design challenge is skipped — the internal blueprint reviewer still runs
+- Design challenge is skipped — the internal cavekit reviewer still runs
 - Tier gate is skipped — the build loop proceeds without review pauses
 - Command gate falls back to static allowlist/blocklist only
 - A one-time install nudge appears: `Tip: Install Codex for adversarial code review`
 
-Blueprint works the same as before. Codex makes it harder to ship bad blueprints and bad code.
+Cavekit works the same as before. Codex makes it harder to ship bad kits and bad code.
 
 ### Configuration
 
-Blueprint settings can live in two places:
+Cavekit settings can live in two places:
 
-- User default: `~/.blueprint/config`
-- Project override: `.blueprint/config`
+- User default: `~/.cavekit/config`
+- Project override: `.cavekit/config`
 
 Precedence is: project override > user default > built-in default.
 
 | Setting | Values | Default | Purpose |
 |---------|--------|---------|---------|
-| `bp_model_preset` | `expensive` `quality` `balanced` `fast` | `quality` | Resolve `reasoning`, `execution`, and `exploration` models for Blueprint commands |
+| `bp_model_preset` | `expensive` `quality` `balanced` `fast` | `quality` | Resolve `reasoning`, `execution`, and `exploration` models for Cavekit commands |
 | `codex_review` | `auto` `off` | `auto` | Enable/disable Codex reviews |
 | `codex_model` | model string | (Codex default) | Model for Codex calls |
 | `tier_gate_mode` | `severity` `strict` `permissive` `off` | `severity` | How findings gate tier advancement |
@@ -476,22 +480,22 @@ Examples:
 |---------|-------|-------------|
 | `/bp:research` | Research | Deep multi-agent research — codebase + web, produces research brief |
 | `/bp:design` | Design | Create, import, audit, or update DESIGN.md — establishes a tokenized design system enforced across the pipeline |
-| `/bp:draft` | Draft | Decompose requirements into domain blueprints (offers research if warranted) |
-| `/bp:architect` | Architect | Generate a tiered build site from blueprints |
+| `/bp:draft` | Draft | Decompose requirements into domain kits (offers research if warranted) |
+| `/bp:architect` | Architect | Generate a tiered build site from kits |
 | `/bp:build` | Build | Auto-parallel build — dispatches independent tasks concurrently, progresses through tiers autonomously |
-| `/bp:inspect` | Inspect | Gap analysis + peer review against blueprints |
-| `/bp:config` | — | Show or update the active Blueprint execution preset |
+| `/bp:inspect` | Inspect | Gap analysis + peer review against kits |
+| `/bp:config` | — | Show or update the active Cavekit execution preset |
 | `/bp:codex-review` | — | Run standalone Codex adversarial review on current diff |
 | `/bp:progress` | — | Check build site progress |
 | `/bp:gap-analysis` | — | Compare built vs. intended |
-| `/bp:revise` | — | Trace manual fixes back into blueprints |
+| `/bp:revise` | — | Trace manual fixes back into kits |
 | `/bp:help` | — | Show usage guide |
 
 ### CLI commands
 
 | Command | Description |
 |---------|-------------|
-| `blueprint version` | Print version |
+| `cavekit version` | Print version |
 
 ---
 
@@ -499,9 +503,9 @@ Examples:
 
 ```
 context/
-├── blueprints/               # Domain blueprints (persist across cycles)
-│   ├── blueprint-overview.md
-│   └── blueprint-{domain}.md
+├── kits/               # Domain kits (persist across cycles)
+│   ├── cavekit-overview.md
+│   └── cavekit-{domain}.md
 ├── designs/                  # Design system artifacts
 │   ├── DESIGN.md                  # Tokenized design system (colors, typography, spacing, components)
 │   └── design-changelog.md        # Audit log of design decisions and changes
@@ -519,13 +523,13 @@ context/
     └── research-{topic}/           # Raw findings + findings board
 
 scripts/
-├── bp-config.sh              # Canonical Blueprint config + model preset resolver
+├── bp-config.sh              # Canonical Cavekit config + model preset resolver
 ├── codex-detect.sh           # Codex binary and plugin detection
 ├── codex-config.sh           # Backward-compatible wrapper for bp-config.sh
 ├── codex-review.sh           # Adversarial code review invocation
 ├── codex-findings.sh         # Structured finding management
 ├── codex-gate.sh             # Severity-based tier gating + fix cycle
-├── codex-design-challenge.sh # Design challenge for blueprint drafts
+├── codex-design-challenge.sh # Design challenge for cavekit drafts
 ├── codex-speculative.sh      # Background speculative review pipeline
 └── command-gate.sh           # PreToolUse command safety gate
 ```
@@ -534,15 +538,15 @@ scripts/
 
 ## Methodology
 
-Blueprint is built on a simple observation: LLMs are non-deterministic, but software engineering doesn't have to be. By applying the **scientific method** — hypothesize, test, observe, refine — we extract reliable outcomes from a stochastic process.
+Cavekit is built on a simple observation: LLMs are non-deterministic, but software engineering doesn't have to be. By applying the **scientific method** — hypothesize, test, observe, refine — we extract reliable outcomes from a stochastic process.
 
 | Concept | Role |
 |---------|------|
-| **Blueprints** | The hypothesis — what you expect the software to do |
+| **Kits** | The hypothesis — what you expect the software to do |
 | **Validation gates** | Controlled conditions — build, tests, acceptance criteria |
 | **Convergence loops** | Repeated trials — iterate until stable |
 | **Implementation tracking** | Lab notebook — what was tried, what worked, what failed |
-| **Revision** | Update the hypothesis — trace bugs back to blueprints |
+| **Revision** | Update the hypothesis — trace bugs back to kits |
 
 The plugin ships with 9 specialized agents (including a **design-reviewer** that validates UI changes against DESIGN.md), a multi-agent research system, and 15 deep-dive skills covering the full methodology. When Codex is installed, the system operates as a **dual-model architecture** — Claude builds and Codex reviews — catching classes of errors that single-model self-review cannot detect.
 
@@ -551,13 +555,13 @@ The plugin ships with 9 specialized agents (including a **design-reviewer** that
 
 - **[Design System](skills/design-system)** — how to create and maintain a DESIGN.md that agents enforce
 - **[UI Craft](skills/ui-craft)** — component patterns, animation playbook, accessibility checklist, and review checklist for UI work
-- **[Blueprint Writing](skills/blueprint-writing)** — how to write blueprints agents can consume
+- **[Cavekit Writing](skills/cavekit-writing)** — how to write kits agents can consume
 - **[Convergence Monitoring](skills/convergence-monitoring)** — detecting when iterations plateau
 - **[Peer Review](skills/peer-review)** — six modes for cross-model review
 - **[Validation-First Design](skills/validation-first)** — every requirement must be verifiable
 - **[Context Architecture](skills/context-architecture)** — progressive disclosure for agent context
-- **[Revision](skills/revision)** — tracing bugs upstream to blueprints
-- **[Brownfield Adoption](skills/brownfield-adoption)** — adding Blueprint to an existing codebase
+- **[Revision](skills/revision)** — tracing bugs upstream to kits
+- **[Brownfield Adoption](skills/brownfield-adoption)** — adding Cavekit to an existing codebase
 - **[Speculative Pipeline](skills/speculative-pipeline)** — overlapping phases for faster builds
 - **[Prompt Pipeline](skills/prompt-pipeline)** — designing the prompts that drive each phase
 - **[Implementation Tracking](skills/impl-tracking)** — living records of build progress
@@ -569,13 +573,13 @@ The plugin ships with 9 specialized agents (including a **design-reviewer** that
 
 ---
 
-## Why "Blueprint"
+## Why "Cavekit"
 
-Most AI coding tools treat the agent as a black box — you prompt, it generates, you hope. Blueprint inverts this. **The specification is the product. The code is a derivative.** When the spec is clear, the code follows. When the code is wrong, the spec tells you why.
+Most AI coding tools treat the agent as a black box — you prompt, it generates, you hope. Cavekit inverts this. **The specification is the product. The code is a derivative.** When the spec is clear, the code follows. When the code is wrong, the spec tells you why.
 
-This matters because AI agents are getting better every month, but the fundamental problem remains: without a specification, there's nothing to validate against. Blueprint gives every agent — current and future — a contract to build from and a standard to meet.
+This matters because AI agents are getting better every month, but the fundamental problem remains: without a specification, there's nothing to validate against. Cavekit gives every agent — current and future — a contract to build from and a standard to meet.
 
-With Codex adversarial review, Blueprint goes further: a second model with different training and different blind spots reviews both the specification and the implementation. Two models disagreeing is a signal. Two models agreeing is confidence.
+With Codex adversarial review, Cavekit goes further: a second model with different training and different blind spots reviews both the specification and the implementation. Two models disagreeing is a signal. Two models agreeing is confidence.
 
 ---
 

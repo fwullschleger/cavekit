@@ -9,11 +9,11 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/julb/blueprint-monitor/internal/exec"
-	"github.com/julb/blueprint-monitor/internal/session"
-	"github.com/julb/blueprint-monitor/internal/site"
-	"github.com/julb/blueprint-monitor/internal/tmux"
-	"github.com/julb/blueprint-monitor/internal/worktree"
+	"github.com/JuliusBrussee/cavekit/internal/exec"
+	"github.com/JuliusBrussee/cavekit/internal/session"
+	"github.com/JuliusBrussee/cavekit/internal/site"
+	"github.com/JuliusBrussee/cavekit/internal/tmux"
+	"github.com/JuliusBrussee/cavekit/internal/worktree"
 )
 
 // Tab represents the active content tab.
@@ -269,7 +269,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						a.toasts.Add("Instance killed", ToastInfo)
 					case ActionPush:
 						wtMgr := worktree.NewManager(exec.NewRealExecutor())
-						wtMgr.Push(context.Background(), sel.WorktreePath, "Blueprint: push from monitor")
+						wtMgr.Push(context.Background(), sel.WorktreePath, "Cavekit: push from monitor")
 						a.toasts.Add("Branch pushed", ToastSuccess)
 					}
 					a.pendingAction = ActionNone

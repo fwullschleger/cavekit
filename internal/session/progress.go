@@ -3,7 +3,7 @@ package session
 import (
 	"path/filepath"
 
-	"github.com/julb/blueprint-monitor/internal/site"
+	"github.com/JuliusBrussee/cavekit/internal/site"
 )
 
 // UpdateProgress refreshes the progress fields on an instance

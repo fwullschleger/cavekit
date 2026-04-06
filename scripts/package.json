@@ -1,5 +1,5 @@
 {
-  "name": "blueprint-scripts",
+  "name": "cavekit-scripts",
   "private": true,
   "type": "module",
   "dependencies": {

@@ -45,7 +45,7 @@ Implementation-agnostic specifications that define what the new system must do.
 ```
 shared-context/
 +-- specs/
-|   +-- blueprint-overview.md           # Index of all specs
+|   +-- cavekit-overview.md           # Index of all specs
 |   +-- spec-features.md           # Feature requirements
 |   +-- spec-ui-requirements.md    # UI/UX requirements
 |   +-- spec-data.md               # Data model specs
@@ -108,7 +108,7 @@ shared-context-repo/
 |   +-- ref-ui-components.md
 |   +-- ref-library.md
 +-- specs/
-|   +-- blueprint-overview.md
+|   +-- cavekit-overview.md
 |   +-- spec-features.md
 |   +-- spec-ui-requirements.md
 |   +-- spec-data.md
@@ -266,7 +266,7 @@ Read `context/research/research-{FRAMEWORK}.md` for framework patterns.
 The most powerful benefit: identical specifications drive completely different implementations.
 
 ```
-shared-context/blueprints/spec-auth.md
+shared-context/kits/spec-auth.md
     |
     +-> react-prototype/context/plans/plan-auth.md (React + NextAuth)
     |   +-> React implementation with NextAuth
@@ -324,7 +324,7 @@ web-app-specs/
 |   +-- ref-data-models.md       # Database schema documentation
 |   +-- ref-user-flows.md        # User journey documentation
 +-- specs/
-|   +-- blueprint-overview.md         # All features with acceptance criteria
+|   +-- cavekit-overview.md         # All features with acceptance criteria
 |   +-- spec-auth.md             # Authentication: login, register, sessions
 |   +-- spec-dashboard.md        # Dashboard: data display, filtering, export
 |   +-- spec-settings.md         # Settings: profile, preferences, notifications
@@ -559,7 +559,7 @@ When a bug is found in one implementation:
 Bug found in Framework A implementation
   |
   +-> Is the spec missing a requirement?
-  |     YES -> Fix shared-context/blueprints/ -> update ALL repos
+  |     YES -> Fix shared-context/kits/ -> update ALL repos
   |     NO  -> continue
   |
   +-> Is the plan wrong for this framework?

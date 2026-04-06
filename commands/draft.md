@@ -1,14 +1,14 @@
 ---
 name: bp-draft
-description: "Write blueprints: decompose what you're building into domains with testable requirements"
+description: "Write kits: decompose what you're building into domains with testable requirements"
 argument-hint: "[REFS_PATH | --from-code] [--filter PATTERN]"
 ---
 
-# Blueprint Draft — Write Blueprints
+# Cavekit Draft — Write Kits
 
-This is the first phase of Blueprint. You are writing implementation-agnostic blueprints that define WHAT to build through collaborative design with the user.
+This is the first phase of Cavekit. You are writing implementation-agnostic kits that define WHAT to build through collaborative design with the user.
 
-**HARD GATE:** Do NOT generate blueprint files until you have presented the design and the user has approved it. This applies to EVERY project regardless of perceived simplicity. A todo app, a config change, a single-domain project — all of them go through the design process. The design can be short for simple projects, but you MUST present it and get approval.
+**HARD GATE:** Do NOT generate cavekit files until you have presented the design and the user has approved it. This applies to EVERY project regardless of perceived simplicity. A todo app, a config change, a single-domain project — all of them go through the design process. The design can be short for simple projects, but you MUST present it and get approval.
 
 ## Step 0: Resolve Execution Profile
 
@@ -18,19 +18,19 @@ Before doing any substantive work:
 2. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/bp-config.sh" model exploration` and store it as `EXPLORATION_MODEL`.
 3. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/bp-config.sh" model reasoning` and store it as `REASONING_MODEL`.
 
-Keep the user Q&A in the parent thread. Use `EXPLORATION_MODEL` for helper exploration/research and `REASONING_MODEL` for blueprint generation and review.
+Keep the user Q&A in the parent thread. Use `EXPLORATION_MODEL` for helper exploration/research and `REASONING_MODEL` for cavekit generation and review.
 
 ## Determine Mode
 
 Parse `$ARGUMENTS`:
-- If `--from-code` → **Brownfield mode** (reverse-engineer blueprints from existing code)
-- If a path is given → **Refs mode** (generate blueprints from reference materials at that path)
+- If `--from-code` → **Brownfield mode** (reverse-engineer kits from existing code)
+- If a path is given → **Refs mode** (generate kits from reference materials at that path)
 - If no arguments → **Interactive mode** (collaborative design with the user)
 
 ## Step 1: Ensure Directories Exist
 
 Create these if missing (no separate init needed):
-- `context/blueprints/`
+- `context/kits/`
 - `context/plans/`
 - `context/impl/`
 - `context/impl/archive/`
@@ -40,12 +40,12 @@ Create these if missing (no separate init needed):
 
 Before asking ANY questions, understand what already exists:
 
-1. Check for existing `context/blueprints/` — are there prior blueprints?
+1. Check for existing `context/kits/` — are there prior kits?
 2. Read project docs, README, CLAUDE.md if present
 3. Check recent git commits to understand current momentum
 4. Scan the codebase structure (directory layout, key files)
 5. Check `context/refs/` for reference materials already provided
-6. Check for existing `DESIGN.md` at project root or in `context/designs/` — if present, this constrains visual design decisions for any UI-related blueprints
+6. Check for existing `DESIGN.md` at project root or in `context/designs/` — if present, this constrains visual design decisions for any UI-related kits
 
 This gives you grounding before engaging the user. Do NOT skip this even if the user has already described what they want.
 
@@ -65,7 +65,7 @@ If upcoming questions will involve visual content (UI layouts, architecture diag
 
 Wait for the user's response. If they decline, proceed with text-only. If they accept, read `references/visual-companion.md` for the detailed guide. The server lives in `scripts/visual-companion/`.
 
-If the project has a `DESIGN.md` at the root, mention it: "I see an existing design system (DESIGN.md). I'll use it as a visual constraint for any UI-related blueprints."
+If the project has a `DESIGN.md` at the root, mention it: "I see an existing design system (DESIGN.md). I'll use it as a visual constraint for any UI-related kits."
 
 **Per-question decision:** Even after the user accepts, decide FOR EACH QUESTION whether to use the browser or the terminal. The test: **would the user understand this better by seeing it than reading it?**
 - **Use the browser** for: mockups, wireframes, architecture diagrams, side-by-side visual comparisons
@@ -273,11 +273,11 @@ Only move to the next domain when the current one is approved. Be ready to revis
 - Be understandable and testable independently
 - Be small enough to reason about in a single context window
 
-**YAGNI ruthlessly:** Remove features the user didn't ask for. If you're tempted to add "nice to have" requirements, don't. Smaller blueprints are better blueprints.
+**YAGNI ruthlessly:** Remove features the user didn't ask for. If you're tempted to add "nice to have" requirements, don't. Smaller kits are better kits.
 
 ### Refs mode (path given)
 
-Read all files at the given path (or `context/refs/` if the path is a directory). Catalog what you find: PRDs, API docs, design blueprints, research, architecture docs. Use these as the source of truth for blueprint generation.
+Read all files at the given path (or `context/refs/` if the path is a directory). Catalog what you find: PRDs, API docs, design kits, research, architecture docs. Use these as the source of truth for cavekit generation.
 
 After reading, still present a brief design summary to the user before generating files:
 - "Here's what I found and how I plan to decompose it into domains: ..."
@@ -301,13 +301,13 @@ Analyze the input and decompose into logical domains. Each domain should be:
 - **Independently specifiable** — can be described without implementation details of other domains
 - **Right-sized** — small enough to hold in context, large enough to be meaningful
 
-## Step 5: Generate Blueprints
+## Step 5: Generate Kits
 
-**Only after user approves the design**, generate blueprint files.
+**Only after user approves the design**, generate cavekit files.
 
-Do NOT perform the actual blueprint writing inline in the parent thread. Dispatch a `bp:drafter` subagent with `model: "{REASONING_MODEL}"` to write the files, then review the result in the parent thread.
+Do NOT perform the actual cavekit writing inline in the parent thread. Dispatch a `bp:drafter` subagent with `model: "{REASONING_MODEL}"` to write the files, then review the result in the parent thread.
 
-For each domain, create `context/blueprints/blueprint-{domain}.md`:
+For each domain, create `context/kits/cavekit-{domain}.md`:
 
 ```markdown
 ---
@@ -315,7 +315,7 @@ created: "{CURRENT_DATE_UTC}"
 last_edited: "{CURRENT_DATE_UTC}"
 ---
 
-# Blueprint: {Domain Name}
+# Cavekit: {Domain Name}
 
 ## Scope
 {What this domain covers}
@@ -327,7 +327,7 @@ last_edited: "{CURRENT_DATE_UTC}"
 **Acceptance Criteria:**
 - [ ] {Testable criterion 1}
 - [ ] {Testable criterion 2}
-**Dependencies:** {Other blueprints/requirements this depends on, or "none"}
+**Dependencies:** {Other kits/requirements this depends on, or "none"}
 
 ### R2: ...
 
@@ -335,34 +335,34 @@ last_edited: "{CURRENT_DATE_UTC}"
 {Explicit exclusions — what this domain does NOT cover}
 
 ## Cross-References
-- See also: blueprint-{related-domain}.md
+- See also: cavekit-{related-domain}.md
 
 ## Changelog
 ```
 
-If `--filter` is set, only generate blueprints for domains matching the filter pattern.
+If `--filter` is set, only generate kits for domains matching the filter pattern.
 
 ### Quality Rules — These Are Non-Negotiable
 
 - Every file MUST have YAML frontmatter with `created` and `last_edited` dates (ISO 8601 UTC)
-- Blueprints are **implementation-agnostic** — describe WHAT, never HOW
+- Kits are **implementation-agnostic** — describe WHAT, never HOW
 - Every requirement MUST have testable acceptance criteria
 - If a requirement cannot be automatically validated, flag it as needing human review
-- Cross-reference blueprints where domains interact
+- Cross-reference kits where domains interact
 - Explicitly state what is out of scope
 - Use R-numbered requirements (R1, R2, R3...)
 - **YAGNI** — do not add requirements the user did not ask for
-- If research was done, blueprints may reference the brief as source material: "See `context/refs/research-brief-{topic}.md` for library evaluation"
-- **Design system integration** — for blueprints containing UI requirements, acceptance criteria SHOULD reference DESIGN.md sections/tokens where applicable (e.g., "Button uses primary CTA styling from DESIGN.md Section 4"). This makes the visual contract explicit and inspectable. Do NOT duplicate DESIGN.md content — reference by section/token name only.
+- If research was done, kits may reference the brief as source material: "See `context/refs/research-brief-{topic}.md` for library evaluation"
+- **Design system integration** — for kits containing UI requirements, acceptance criteria SHOULD reference DESIGN.md sections/tokens where applicable (e.g., "Button uses primary CTA styling from DESIGN.md Section 4"). This makes the visual contract explicit and inspectable. Do NOT duplicate DESIGN.md content — reference by section/token name only.
 
 ### Brownfield-Specific Rules
 
 - Describe what the code DOES, not how it's implemented
 - For each acceptance criterion, verify the existing code satisfies it
 - If code does NOT satisfy a criterion, mark it as `[GAP]`
-- Note source files that informed each blueprint in a Source Traceability section
+- Note source files that informed each cavekit in a Source Traceability section
 
-## Step 6: Create blueprint-overview.md
+## Step 6: Create cavekit-overview.md
 
 ```markdown
 ---
@@ -370,15 +370,15 @@ created: "{CURRENT_DATE_UTC}"
 last_edited: "{CURRENT_DATE_UTC}"
 ---
 
-# Blueprint Overview
+# Cavekit Overview
 
 ## Project
 {Project name and description}
 
 ## Domain Index
-| Domain | Blueprint File | Requirements | Status | Description |
+| Domain | Cavekit File | Requirements | Status | Description |
 |--------|-----------|-------------|--------|-------------|
-| {domain} | blueprint-{domain}.md | {count} | DRAFT | {one-line} |
+| {domain} | cavekit-{domain}.md | {count} | DRAFT | {one-line} |
 
 ## Cross-Reference Map
 | Domain A | Interacts With | Interaction Type |
@@ -391,24 +391,24 @@ last_edited: "{CURRENT_DATE_UTC}"
 
 ## Step 7: Validate
 
-1. Verify every cross-reference points to an existing blueprint
-2. Verify no domain is referenced but missing a blueprint
+1. Verify every cross-reference points to an existing cavekit
+2. Verify no domain is referenced but missing a cavekit
 3. Verify the dependency graph has no circular dependencies
-4. Verify acceptance criteria across blueprints are consistent (no contradictions)
-5. Verify no implementation details leaked into blueprints (no framework names, file paths, API choices)
+4. Verify acceptance criteria across kits are consistent (no contradictions)
+5. Verify no implementation details leaked into kits (no framework names, file paths, API choices)
 6. (Brownfield only) Verify acceptance criteria against existing code
 
-## Step 8: Blueprint Review Loop
+## Step 8: Cavekit Review Loop
 
-After writing blueprints, dispatch a **blueprint-reviewer** subagent to verify quality:
+After writing kits, dispatch a **cavekit-reviewer** subagent to verify quality:
 
 ```
-Agent tool (subagent_type: "bp:blueprint-reviewer", model: "{REASONING_MODEL}"):
-  description: "Review blueprint documents"
+Agent tool (subagent_type: "bp:cavekit-reviewer", model: "{REASONING_MODEL}"):
+  description: "Review cavekit documents"
   prompt: |
-    You are a blueprint reviewer. Verify these blueprints are complete and ready for the Architect phase.
+    You are a cavekit reviewer. Verify these kits are complete and ready for the Architect phase.
 
-    **Blueprints to review:** context/blueprints/
+    **Kits to review:** context/kits/
 
     ## What to Check
 
@@ -434,12 +434,12 @@ Agent tool (subagent_type: "bp:blueprint-reviewer", model: "{REASONING_MODEL}"):
 
     ## Output Format
 
-    ## Blueprint Review
+    ## Cavekit Review
 
     **Status:** Approved | Issues Found
 
     **Issues (if any):**
-    - [Blueprint X, RN]: [specific issue] - [why it matters]
+    - [Cavekit X, RN]: [specific issue] - [why it matters]
 
     **Recommendations (advisory, do not block approval):**
     - [suggestions for improvement]
@@ -452,9 +452,9 @@ Agent tool (subagent_type: "bp:blueprint-reviewer", model: "{REASONING_MODEL}"):
 
 ## Step 9: User Review Gate
 
-After the review loop passes, ask the user to review the written blueprints:
+After the review loop passes, ask the user to review the written kits:
 
-> "Blueprints written and validated. Files are in `context/blueprints/`. Please review them and let me know if you want to make any changes before we move to the Architect phase."
+> "Kits written and validated. Files are in `context/kits/`. Please review them and let me know if you want to make any changes before we move to the Architect phase."
 
 Wait for the user's response. If they request changes, make them and re-run Step 8. Only proceed once the user approves.
 
@@ -475,7 +475,7 @@ Wait for the user's response. If they request changes, make them and re-run Step
 - {anything that couldn't be fully specified}
 
 ### Next Step
-Run `/bp:architect` to generate the build site from these blueprints.
+Run `/bp:architect` to generate the build site from these kits.
 ```
 
 Present the report. When the user is ready, transition to `/bp:architect`.
@@ -486,8 +486,8 @@ Present the report. When the user is ready, transition to `/bp:architect`.
 
 - **One question at a time** — do not overwhelm with multiple questions
 - **Multiple choice preferred** — easier to answer than open-ended when possible
-- **YAGNI ruthlessly** — remove unnecessary features from all blueprints
+- **YAGNI ruthlessly** — remove unnecessary features from all kits
 - **Explore alternatives** — always propose 2-3 approaches before settling
 - **Incremental validation** — present design section by section, get approval before moving on
 - **Design for isolation** — each domain has one purpose, clear interfaces, independently testable
-- **No blueprint generation before design approval** — the design conversation IS the value
+- **No cavekit generation before design approval** — the design conversation IS the value

@@ -24,11 +24,11 @@
 - **Next:** T-009, T-010
 
 ### Iteration 4 — 2026-03-20
-- **Task:** T-009 (scan commits + map to requirements), T-010 (update blueprint requirements)
+- **Task:** T-009 (scan commits + map to requirements), T-010 (update cavekit requirements)
 - **Tier:** 1
 - **Status:** DONE
 - **Files:** commands/revise.md
-- **Validation:** Build P, Acceptance: requirement mapping via build site tracing P, unaffected reqs untouched P, cross-blueprint moves P, since-last-revision from changelog P
+- **Validation:** Build P, Acceptance: requirement mapping via build site tracing P, unaffected reqs untouched P, cross-cavekit moves P, since-last-revision from changelog P
 - **Next:** T-011, T-012, T-013
 
 ### Iteration 5 — 2026-03-20

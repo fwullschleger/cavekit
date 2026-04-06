@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/julb/blueprint-monitor/internal/exec"
+	"github.com/JuliusBrussee/cavekit/internal/exec"
 )
 
 func TestManager_Push(t *testing.T) {

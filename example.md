@@ -1,4 +1,4 @@
-# Blueprint — Example Conversations
+# Cavekit — Example Conversations
 
 ## Greenfield: Task management API
 
@@ -12,18 +12,18 @@ user: A task management API. Users create projects, add tasks with priorities
 
 claude: Decomposing into domains...
 
-      Created 4 blueprints:
-      - blueprint-users.md (4 requirements, 12 acceptance criteria)
-      - blueprint-projects.md (6 requirements, 18 acceptance criteria)
-      - blueprint-tasks.md (9 requirements, 31 acceptance criteria)
-      - blueprint-notifications.md (3 requirements, 8 acceptance criteria)
+      Created 4 kits:
+      - cavekit-users.md (4 requirements, 12 acceptance criteria)
+      - cavekit-projects.md (6 requirements, 18 acceptance criteria)
+      - cavekit-tasks.md (9 requirements, 31 acceptance criteria)
+      - cavekit-notifications.md (3 requirements, 8 acceptance criteria)
 
       Dependency order: users → projects → tasks → notifications
       Next: /bp:architect
 
 user: /bp:architect
 
-claude: Reading 4 blueprints, 22 requirements...
+claude: Reading 4 kits, 22 requirements...
 
       Generated build site: 34 tasks, 5 tiers
       - Tier 0: DB schema, user model (3 tasks)
@@ -39,17 +39,17 @@ user: /bp:build
 claude: Loop activated! 34 tasks, 20 max iterations.
 
       --- Iteration 1 ---
-      T-001: Database Schema Setup (Tier 0, blueprint-users.md R1)
+      T-001: Database Schema Setup (Tier 0, cavekit-users.md R1)
       Build PASS, Tests PASS
       Committed: feat(users): add User model and migration
 
       --- Iteration 2 ---
-      T-002: User Registration Endpoint (Tier 0, blueprint-users.md R1)
+      T-002: User Registration Endpoint (Tier 0, cavekit-users.md R1)
       ...
 
       --- Iteration 18 ---
       All tasks done. Build passes. Tests pass.
-      <promise>BLUEPRINT COMPLETE</promise>
+      <promise>CAVEKIT COMPLETE</promise>
 
       Done. 34 tasks, 18 iterations.
 ```
@@ -61,20 +61,20 @@ user: /bp:draft --from-code
 
 claude: Exploring codebase... Next.js 14, Prisma, NextAuth.
 
-      Found 6 domains. Created blueprints:
-      - blueprint-auth.md (5 requirements — all satisfied by existing code)
-      - blueprint-documents.md (7 requirements — all satisfied)
-      - blueprint-editor.md (6 requirements — all satisfied)
-      - blueprint-collaboration.md (3 requirements — all [GAP], not implemented)
-      - blueprint-comments.md (4 requirements — all satisfied)
-      - blueprint-notifications.md (3 requirements — 2 satisfied, 1 [GAP])
+      Found 6 domains. Created kits:
+      - cavekit-auth.md (5 requirements — all satisfied by existing code)
+      - cavekit-documents.md (7 requirements — all satisfied)
+      - cavekit-editor.md (6 requirements — all satisfied)
+      - cavekit-collaboration.md (3 requirements — all [GAP], not implemented)
+      - cavekit-comments.md (4 requirements — all satisfied)
+      - cavekit-notifications.md (3 requirements — 2 satisfied, 1 [GAP])
 
       4 requirements are gaps (not yet implemented).
 
 user: I only want the collaboration features.
       /bp:architect --filter collaboration
 
-claude: Reading blueprint-collaboration.md (3 requirements)...
+claude: Reading cavekit-collaboration.md (3 requirements)...
 
       Generated build site: 8 tasks, 3 tiers
       - Tier 0: WebSocket setup, presence types
@@ -90,7 +90,7 @@ claude: Loop activated! 8 tasks.
       ...
 
       --- Iteration 8 ---
-      All done. <promise>BLUEPRINT COMPLETE</promise>
+      All done. <promise>CAVEKIT COMPLETE</promise>
 
 user: Now notifications with peer review.
       /bp:architect --filter notifications
@@ -110,13 +110,13 @@ claude: Archived previous cycle → context/impl/archive/20260314-201500/
 
       --- Iteration 6 (REVIEW) ---
       No new findings. All tasks done.
-      <promise>BLUEPRINT COMPLETE</promise>
+      <promise>CAVEKIT COMPLETE</promise>
 ```
 
 ## The flow
 
 ```
-/bp:draft      →  blueprints
+/bp:draft      →  kits
 /bp:architect  →  build site
 /bp:build      →  code
 ```

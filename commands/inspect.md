@@ -1,14 +1,14 @@
 ---
 name: bp-inspect
-description: "Inspect the last loop: gap analysis against blueprints + peer review code review for bugs, security, and quality"
+description: "Inspect the last loop: gap analysis against kits + peer review code review for bugs, security, and quality"
 argument-hint: "[--filter PATTERN]"
 ---
 
-# Blueprint Inspect — Post-Loop Analysis
+# Cavekit Inspect — Post-Loop Analysis
 
 Run this after `/bp:build` completes (or is stopped). It does two things:
 
-1. **Gap analysis** — compares what was built against what the blueprints require
+1. **Gap analysis** — compares what was built against what the kits require
 2. **Peer review** — finds bugs, security issues, and quality problems in the code that was written
 
 ## Step 0: Resolve Execution Profile
@@ -25,7 +25,7 @@ Use `REASONING_MODEL` explicitly for the delegated surveyor and inspector work b
 Read these files to understand what happened:
 
 1. **Site/Plan** — find in `context/plans/` or `context/sites/` (match `*site*`, `*plan*`, or `*frontier*`, exclude `*overview*`; apply `--filter` from `$ARGUMENTS` if set)
-2. **Blueprints** — all `context/blueprints/blueprint-*.md` files (apply filter)
+2. **Kits** — all `context/kits/cavekit-*.md` files (apply filter)
 3. **Impl tracking** — all `context/impl/impl-*.md` files
 4. **Loop log** — `context/impl/loop-log.md`
 5. **Git history** — run `git log --oneline -30` to see recent commits from the loop
@@ -39,14 +39,14 @@ If no impl tracking or loop log exists, tell the user:
 
 Do not perform the substantive gap analysis inline. Dispatch a `bp:surveyor` subagent with `model: "{REASONING_MODEL}"` to produce the coverage analysis.
 
-For every blueprint requirement (R-numbered) and its acceptance criteria, determine status:
+For every cavekit requirement (R-numbered) and its acceptance criteria, determine status:
 
 | Status | Meaning |
 |--------|---------|
 | **COMPLETE** | All acceptance criteria met, code exists, tests pass |
 | **PARTIAL** | Some criteria met, others missing or untested |
 | **MISSING** | Not implemented at all |
-| **OVER-BUILT** | Code exists that no blueprint requires |
+| **OVER-BUILT** | Code exists that no cavekit requires |
 
 **How to verify:**
 - Don't trust impl tracking alone — check the actual code
@@ -95,9 +95,9 @@ Review all code changes from the loop (`git diff` output) looking for:
 - Inconsistency with existing codebase patterns
 - Missing error handling on external calls
 
-**Blueprint Gaps**
+**Cavekit Gaps**
 - Requirements that SHOULD exist but don't
-- Edge cases the blueprint doesn't address
+- Edge cases the cavekit doesn't address
 - Integration points between domains that are undefined
 
 **Design System Violations** (if DESIGN.md exists)
@@ -112,7 +112,7 @@ Review all code changes from the loop (`git diff` output) looking for:
 Present this to the user:
 
 ```markdown
-# Blueprint Inspect Report
+# Cavekit Inspect Report
 
 **Date:** {date}
 **Loop iterations:** {from loop-log.md}
@@ -137,19 +137,19 @@ Present this to the user:
 ### Gaps Found
 
 #### PARTIAL — needs more work
-| Requirement | Blueprint | What's Done | What's Missing |
+| Requirement | Cavekit | What's Done | What's Missing |
 |------------|------|-------------|----------------|
-| R{n}: {name} | blueprint-{domain}.md | {met criteria} | {unmet criteria} |
+| R{n}: {name} | cavekit-{domain}.md | {met criteria} | {unmet criteria} |
 
 #### MISSING — not started
-| Requirement | Blueprint | Why |
+| Requirement | Cavekit | Why |
 |------------|------|-----|
-| R{n}: {name} | blueprint-{domain}.md | {not in site / blocked / dead end} |
+| R{n}: {name} | cavekit-{domain}.md | {not in site / blocked / dead end} |
 
-#### OVER-BUILT — no blueprint for this
+#### OVER-BUILT — no cavekit for this
 | Feature | Files | Recommendation |
 |---------|-------|---------------|
-| {feature} | {files} | Add blueprint / Remove code |
+| {feature} | {files} | Add cavekit / Remove code |
 
 ---
 
@@ -196,26 +196,26 @@ Present this to the user:
 1. {highest priority action}
 2. {next action}
 3. {if gaps exist: run `/bp:build` again to address remaining work}
-4. {if blueprint gaps found: blueprints will be updated below, then `/bp:architect` + `/bp:build`}
+4. {if cavekit gaps found: kits will be updated below, then `/bp:architect` + `/bp:build`}
 ```
 
 ## Step 5: Revise
 
-After presenting the report, **automatically update blueprints and site** based on findings. Do not ask — just do it.
+After presenting the report, **automatically update kits and site** based on findings. Do not ask — just do it.
 
-### Update Blueprints
+### Update Kits
 
-For each finding that reveals a blueprint gap:
+For each finding that reveals a cavekit gap:
 
-- **Missing requirement** — add it to the appropriate blueprint file as a new R-number with acceptance criteria
+- **Missing requirement** — add it to the appropriate cavekit file as a new R-number with acceptance criteria
 - **Ambiguous criterion** — rewrite the criterion to be specific and testable
 - **Untestable criterion** — rewrite to be automatically verifiable, or flag with `[HUMAN REVIEW]`
 - **Over-built feature worth keeping** — add a new requirement to formalize it
-- **Over-built feature not worth keeping** — note in the report but don't add to blueprint
-- **Security/bug finding that exposes a blueprint gap** — add a requirement that would have caught it (e.g. "R7: Input Validation — all user input is sanitized before database queries")
+- **Over-built feature not worth keeping** — note in the report but don't add to cavekit
+- **Security/bug finding that exposes a cavekit gap** — add a requirement that would have caught it (e.g. "R7: Input Validation — all user input is sanitized before database queries")
 - **Design violation that reveals a missing DESIGN.md pattern** — update DESIGN.md by adding the missing pattern to the appropriate section, and log the change to `context/designs/design-changelog.md`
 
-When modifying a blueprint file:
+When modifying a cavekit file:
 - Update the `last_edited` date in frontmatter
 - Add new requirements at the end of the existing requirements list
 - Add a `## Changes` section at the bottom noting what was added and why:
@@ -227,7 +227,7 @@ When modifying a blueprint file:
 
 ### Update Site
 
-If new requirements were added to blueprints, add corresponding tasks to the site:
+If new requirements were added to kits, add corresponding tasks to the site:
 
 1. Read the build site (check `context/plans/` first, then `context/sites/`)
 2. For each new requirement, create task(s) with T-numbers continuing from the last existing task
@@ -284,10 +284,10 @@ After revision, tell the user:
 ```markdown
 ## Revision Summary
 
-### Blueprints Updated
-| Blueprint | Changes |
+### Kits Updated
+| Cavekit | Changes |
 |------|---------|
-| blueprint-{domain}.md | Added R{n}: {title} |
+| cavekit-{domain}.md | Added R{n}: {title} |
 
 ### Site Updated
 | Task | Title | Tier | From Finding |

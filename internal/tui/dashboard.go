@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/julb/blueprint-monitor/internal/session"
+	"github.com/JuliusBrussee/cavekit/internal/session"
 )
 
 // Dashboard renders aggregate information when no instance is selected.
@@ -33,7 +33,7 @@ func (d *Dashboard) SetSize(w, h int) {
 // View renders the dashboard.
 func (d *Dashboard) View() string {
 	if len(d.instances) == 0 {
-		content := DashboardTitleStyle.Render("Blueprint Monitor") + "\n\n" +
+		content := DashboardTitleStyle.Render("Cavekit Monitor") + "\n\n" +
 			lipgloss.NewStyle().Foreground(ColorMuted).Render("No agents running") + "\n\n" +
 			lipgloss.NewStyle().Foreground(ColorSecondary).Render("Press ") +
 			MenuKeyStyle.Render("n") +

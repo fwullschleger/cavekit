@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/julb/blueprint-monitor/internal/session"
+	"github.com/JuliusBrussee/cavekit/internal/session"
 )
 
 // InstanceList renders the left panel with all active instances.

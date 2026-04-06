@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Blueprint Installer
+# Cavekit Installer
 #
 # Usage:
-#   git clone https://github.com/JuliusBrussee/sdd-os.git ~/.blueprint && ~/.blueprint/install.sh
+#   git clone https://github.com/JuliusBrussee/cavekit.git ~/.cavekit && ~/.cavekit/install.sh
 
 set -euo pipefail
 
@@ -11,8 +11,8 @@ INSTALL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_DIR="$HOME/.claude"
 SETTINGS_FILE="$CLAUDE_DIR/settings.json"
 BIN_DIR="/usr/local/bin"
-MARKETPLACE_NAME="blueprint-local"
-MARKETPLACE_DIR="$CLAUDE_DIR/plugins/local/blueprint-marketplace"
+MARKETPLACE_NAME="cavekit-local"
+MARKETPLACE_DIR="$CLAUDE_DIR/plugins/local/cavekit-marketplace"
 
 # ─── Colors ─────────────────────────────────────────────────────────────────
 
@@ -26,7 +26,7 @@ fail()  { printf "${RD}✗${R} %s\n" "$1" >&2; exit 1; }
 # ─── Header ─────────────────────────────────────────────────────────────────
 
 printf "\n${B}${BL}  ┌──────────────────────────┐${R}\n"
-printf "${B}${BL}  │  B L U E P R I N T       │${R}\n"
+printf "${B}${BL}  │  C A V E K I T       │${R}\n"
 printf "${B}${BL}  └──────────────────────────┘${R}\n"
 printf "${B}Installer${R}\n\n"
 
@@ -39,7 +39,7 @@ command -v tmux &>/dev/null || warn "tmux not found. Install for the parallel la
 
 # ─── Create marketplace with symlink to repo ─────────────────────────────
 
-info "Setting up Blueprint marketplace..."
+info "Setting up Cavekit marketplace..."
 
 mkdir -p "$MARKETPLACE_DIR/.claude-plugin"
 
@@ -52,13 +52,13 @@ cat > "$MARKETPLACE_DIR/.claude-plugin/marketplace.json" <<EOF
   "name": "$MARKETPLACE_NAME",
   "owner": { "name": "$(whoami)" },
   "metadata": {
-    "description": "Local Blueprint plugin marketplace",
+    "description": "Local Cavekit plugin marketplace",
     "version": "2.0.0"
   },
   "plugins": [
     {
       "name": "bp",
-      "description": "Blueprint framework with skills, commands, agents, and references",
+      "description": "Cavekit framework with skills, commands, agents, and references",
       "version": "2.0.0",
       "source": "./bp",
       "author": { "name": "$(whoami)" }
@@ -69,8 +69,8 @@ EOF
 
 cat > "$MARKETPLACE_DIR/.claude-plugin/plugin.json" <<EOF
 {
-  "name": "blueprint-marketplace",
-  "description": "Local Blueprint plugin marketplace",
+  "name": "cavekit-marketplace",
+  "description": "Local Cavekit plugin marketplace",
   "version": "2.0.0",
   "plugins": ["bp"]
 }
@@ -130,25 +130,25 @@ info "Configuring Codex local plugin..."
 chmod +x "$INSTALL_DIR/scripts/sync-codex-plugin.sh"
 "$INSTALL_DIR/scripts/sync-codex-plugin.sh"
 
-# ─── Install blueprint CLI ─────────────────────────────────────────────────
+# ─── Install cavekit CLI ─────────────────────────────────────────────────
 
-info "Installing blueprint command..."
+info "Installing cavekit command..."
 
-chmod +x "$INSTALL_DIR/scripts/blueprint"
-chmod +x "$INSTALL_DIR/scripts/blueprint-launch-session.sh"
-chmod +x "$INSTALL_DIR/scripts/blueprint-status-poller.sh"
-chmod +x "$INSTALL_DIR/scripts/blueprint-analytics.sh"
+chmod +x "$INSTALL_DIR/scripts/cavekit"
+chmod +x "$INSTALL_DIR/scripts/cavekit-launch-session.sh"
+chmod +x "$INSTALL_DIR/scripts/cavekit-status-poller.sh"
+chmod +x "$INSTALL_DIR/scripts/cavekit-analytics.sh"
 chmod +x "$INSTALL_DIR/scripts/dashboard-progress.sh"
 chmod +x "$INSTALL_DIR/scripts/dashboard-activity.sh"
 chmod +x "$INSTALL_DIR/scripts/setup-build.sh"
 
 if [[ -w "$BIN_DIR" ]]; then
-  ln -sf "$INSTALL_DIR/scripts/blueprint" "$BIN_DIR/blueprint"
-  ok "Installed blueprint to $BIN_DIR/blueprint"
+  ln -sf "$INSTALL_DIR/scripts/cavekit" "$BIN_DIR/cavekit"
+  ok "Installed cavekit to $BIN_DIR/cavekit"
 else
-  info "Need sudo to install blueprint to $BIN_DIR"
-  sudo ln -sf "$INSTALL_DIR/scripts/blueprint" "$BIN_DIR/blueprint"
-  ok "Installed blueprint to $BIN_DIR/blueprint"
+  info "Need sudo to install cavekit to $BIN_DIR"
+  sudo ln -sf "$INSTALL_DIR/scripts/cavekit" "$BIN_DIR/cavekit"
+  ok "Installed cavekit to $BIN_DIR/cavekit"
 fi
 
 # ─── Done ───────────────────────────────────────────────────────────────────
@@ -156,16 +156,16 @@ fi
 printf "\n${B}${GR}Installed!${R}\n\n"
 
 printf "  ${B}Terminal:${R}\n"
-printf "    blueprint --monitor                 Pick build sites and launch agents\n"
-printf "    blueprint --monitor --expanded      One tmux window per build site\n"
-printf "    blueprint --status                  Show build site progress\n"
-printf "    blueprint --analytics               Show loop trends\n"
-printf "    blueprint --kill                    Stop sessions\n"
+printf "    cavekit --monitor                 Pick build sites and launch agents\n"
+printf "    cavekit --monitor --expanded      One tmux window per build site\n"
+printf "    cavekit --status                  Show build site progress\n"
+printf "    cavekit --analytics               Show loop trends\n"
+printf "    cavekit --kill                    Stop sessions\n"
 printf "\n"
 printf "  ${B}Claude:${R}\n"
-printf "    /bp:draft                    Draft blueprints\n"
+printf "    /bp:draft                    Draft kits\n"
 printf "    /bp:architect                Architect build sites\n"
-printf "    /bp:build                    Build from blueprints\n"
+printf "    /bp:build                    Build from kits\n"
 printf "    /bp:inspect                  Inspect the build\n"
 printf "    /bp:progress                 Check build progress\n"
 printf "\n"

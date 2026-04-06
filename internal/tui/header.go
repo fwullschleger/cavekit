@@ -48,7 +48,7 @@ func (h *Header) View() string {
 		return ""
 	}
 
-	title := HeaderTitleStyle.Render("Blueprint")
+	title := HeaderTitleStyle.Render("Cavekit")
 
 	project := ""
 	if h.projectRoot != "" {

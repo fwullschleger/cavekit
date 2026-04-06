@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Start the Blueprint visual companion server and output connection info
+# Start the Cavekit visual companion server and output connection info
 # Usage: start-server.sh [--project-dir <path>] [--host <bind-host>] [--url-host <display-host>] [--foreground] [--background]
 #
 # Starts server on a random high port, outputs JSON with URL.
 # Each session gets its own directory to avoid conflicts.
 #
 # Options:
-#   --project-dir <path>  Store session files under <path>/.blueprint/companion/
+#   --project-dir <path>  Store session files under <path>/.cavekit/companion/
 #                         instead of /tmp. Files persist after server stops.
 #   --host <bind-host>    Host/interface to bind (default: 127.0.0.1).
 #                         Use 0.0.0.0 in remote/containerized environments.
@@ -78,9 +78,9 @@ fi
 SESSION_ID="$$-$(date +%s)"
 
 if [[ -n "$PROJECT_DIR" ]]; then
-  SCREEN_DIR="${PROJECT_DIR}/.blueprint/companion/${SESSION_ID}"
+  SCREEN_DIR="${PROJECT_DIR}/.cavekit/companion/${SESSION_ID}"
 else
-  SCREEN_DIR="/tmp/blueprint-companion-${SESSION_ID}"
+  SCREEN_DIR="/tmp/cavekit-companion-${SESSION_ID}"
 fi
 
 PID_FILE="${SCREEN_DIR}/.server.pid"

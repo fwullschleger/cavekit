@@ -74,7 +74,7 @@ fi
 
 # ── One-time install nudge ─────────────────────────────────────────────
 
-_BP_NUDGE_FILE="${BP_PROJECT_ROOT:-.}/.blueprint/.codex-nudge-shown"
+_BP_NUDGE_FILE="${BP_PROJECT_ROOT:-.}/.cavekit/.codex-nudge-shown"
 
 bp_codex_nudge() {
   if [[ "$codex_available" == "true" ]]; then

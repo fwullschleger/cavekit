@@ -6,20 +6,20 @@ import (
 	"strings"
 )
 
-// DiscoveredWorktree represents a found Blueprint worktree.
+// DiscoveredWorktree represents a found Cavekit worktree.
 type DiscoveredWorktree struct {
 	Path         string // Full worktree path
-	Branch       string // Branch name (blueprint/xxx)
+	Branch       string // Branch name (cavekit/xxx)
 	SiteName string // Derived site name
 	HasRalphLoop bool   // .claude/ralph-loop.local.md exists
 }
 
-// DiscoverAll finds all existing Blueprint worktrees for the given project.
-// Scans {project_root}/../{project_name}-blueprint-* directories.
+// DiscoverAll finds all existing Cavekit worktrees for the given project.
+// Scans {project_root}/../{project_name}-cavekit-* directories.
 func DiscoverAll(projectRoot string) ([]DiscoveredWorktree, error) {
 	projectName := filepath.Base(projectRoot)
 	parentDir := filepath.Dir(projectRoot)
-	pattern := projectName + "-blueprint-"
+	pattern := projectName + "-cavekit-"
 
 	entries, err := os.ReadDir(parentDir)
 	if err != nil {

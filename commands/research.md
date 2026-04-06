@@ -1,14 +1,14 @@
 ---
 name: bp-research
-description: "Deep research for grounding blueprints in evidence — current best practices, library landscape, and codebase analysis"
+description: "Deep research for grounding kits in evidence — current best practices, library landscape, and codebase analysis"
 argument-hint: "<description> [--depth quick|standard|deep] [--web-only] [--codebase-only]"
 ---
 
-# Blueprint Research — Deep Multi-Agent Research
+# Cavekit Research — Deep Multi-Agent Research
 
-Run parallel multi-agent research to ground blueprint design in real evidence. Produces a named research brief in `context/refs/` that feeds into blueprint design.
+Run parallel multi-agent research to ground cavekit design in real evidence. Produces a named research brief in `context/refs/` that feeds into cavekit design.
 
-**Core insight:** Blueprints designed without research are blueprints designed on vibes. Research turns the design conversation from "what do you want?" into "here's what we know — what do you want?"
+**Core insight:** Kits designed without research are kits designed on vibes. Research turns the design conversation from "what do you want?" into "here's what we know — what do you want?"
 
 ## Parse Arguments
 
