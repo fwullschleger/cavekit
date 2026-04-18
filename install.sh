@@ -43,9 +43,11 @@ info "Setting up Cavekit marketplace..."
 
 mkdir -p "$MARKETPLACE_DIR/.claude-plugin"
 
-# Symlink the repo as the "ck" plugin (primary) and "bp" (deprecated alias)
+# Symlink the repo as the "ck" plugin
 ln -sfn "$INSTALL_DIR" "$MARKETPLACE_DIR/ck"
-ln -sfn "$INSTALL_DIR" "$MARKETPLACE_DIR/bp"
+
+# Remove any legacy bp alias symlink from earlier installs
+rm -f "$MARKETPLACE_DIR/bp"
 
 # Write marketplace metadata
 cat > "$MARKETPLACE_DIR/.claude-plugin/marketplace.json" <<EOF
@@ -63,13 +65,6 @@ cat > "$MARKETPLACE_DIR/.claude-plugin/marketplace.json" <<EOF
       "version": "3.0.1",
       "source": "./ck",
       "author": { "name": "$(whoami)" }
-    },
-    {
-      "name": "bp",
-      "description": "[DEPRECATED — use /ck:* instead] Cavekit framework (legacy alias)",
-      "version": "3.0.1",
-      "source": "./bp",
-      "author": { "name": "$(whoami)" }
     }
   ]
 }
@@ -80,7 +75,7 @@ cat > "$MARKETPLACE_DIR/.claude-plugin/plugin.json" <<EOF
   "name": "cavekit-marketplace",
   "description": "Local Cavekit plugin marketplace",
   "version": "3.0.1",
-  "plugins": ["ck", "bp"]
+  "plugins": ["ck"]
 }
 EOF
 
@@ -101,34 +96,39 @@ if [[ ! -f "$SETTINGS_FILE" ]]; then
     }
   },
   "enabledPlugins": {
-    "ck@${MARKETPLACE_NAME}": true,
-    "bp@${MARKETPLACE_NAME}": true
+    "ck@${MARKETPLACE_NAME}": true
   }
 }
 EOF
   ok "Created $SETTINGS_FILE"
 else
-  if grep -q "ck@${MARKETPLACE_NAME}" "$SETTINGS_FILE" 2>/dev/null && grep -q "bp@${MARKETPLACE_NAME}" "$SETTINGS_FILE" 2>/dev/null; then
-    ok "Plugin already registered"
-  else
-    if command -v python3 &>/dev/null; then
-      python3 - "$SETTINGS_FILE" "$MARKETPLACE_NAME" "$MARKETPLACE_DIR" <<'PYEOF'
+  if command -v python3 &>/dev/null; then
+    python3 - "$SETTINGS_FILE" "$MARKETPLACE_NAME" "$MARKETPLACE_DIR" <<'PYEOF'
 import json, sys
 path, name, mpath = sys.argv[1], sys.argv[2], sys.argv[3]
 with open(path) as f:
     d = json.load(f)
 d.setdefault("extraKnownMarketplaces", {})[name] = {"source": {"source": "directory", "path": mpath}}
-d.setdefault("enabledPlugins", {})[f"ck@{name}"] = True
-d.setdefault("enabledPlugins", {})[f"bp@{name}"] = True
+enabled = d.setdefault("enabledPlugins", {})
+enabled[f"ck@{name}"] = True
+# Remove deprecated bp plugin registration if present
+enabled.pop(f"bp@{name}", None)
+# Also remove from any other marketplace name the user may have registered it under
+for key in list(enabled.keys()):
+    if key.startswith("bp@") or key.startswith("blueprint@"):
+        enabled.pop(key, None)
 with open(path, "w") as f:
     json.dump(d, f, indent=2)
 PYEOF
-      ok "Updated $SETTINGS_FILE"
+    ok "Updated $SETTINGS_FILE"
+  else
+    if grep -q "ck@${MARKETPLACE_NAME}" "$SETTINGS_FILE" 2>/dev/null; then
+      ok "Plugin already registered"
     else
       warn "Could not auto-update settings. Add manually to $SETTINGS_FILE:"
       printf "\n"
       printf '  "extraKnownMarketplaces": { "%s": { "source": { "source": "directory", "path": "%s" } } }\n' "$MARKETPLACE_NAME" "$MARKETPLACE_DIR"
-      printf '  "enabledPlugins": { "ck@%s": true, "bp@%s": true }\n\n' "$MARKETPLACE_NAME" "$MARKETPLACE_NAME"
+      printf '  "enabledPlugins": { "ck@%s": true }\n\n' "$MARKETPLACE_NAME"
     fi
   fi
 fi
