@@ -539,7 +539,24 @@ which existing code satisfies which criterion — with file paths and line numbe
 5. Commit after each task
 6. NEVER skip implementation because code 'looks related'"
 
-# ─── Write Ralph Loop state ─────────────────────────────────────────────────
+# ─── Activate autonomous runtime (if node is available) ─────────────────────
+
+if command -v node >/dev/null 2>&1 && [[ -f "${SCRIPT_DIR}/cavekit-tools.cjs" ]]; then
+  CAVEKIT_DIR="$(pwd)/.cavekit"
+  # Seed .cavekit/ with defaults if not yet initialized.
+  node "${SCRIPT_DIR}/cavekit-tools.cjs" init --cavekit-dir "$CAVEKIT_DIR" >/dev/null 2>&1 || true
+  # Activate the stop-hook loop. Idempotent if already active.
+  node "${SCRIPT_DIR}/cavekit-tools.cjs" setup-loop \
+    --cavekit-dir "$CAVEKIT_DIR" \
+    --max-iterations "$MAX_ITERATIONS" \
+    --completion-promise "<promise>${COMPLETION_PROMISE}</promise>" \
+    --phase building >/dev/null 2>&1 || true
+  # If a task registry already exists (from /ck:map), the stop-hook drives
+  # the loop. If not, the agent falls back to the legacy Ralph-loop prompt
+  # below (both mechanisms coexist safely).
+fi
+
+# ─── Write Ralph Loop state (legacy, kept for back-compat) ───────────────────
 
 mkdir -p .claude
 

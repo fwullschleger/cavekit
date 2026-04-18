@@ -4,9 +4,10 @@ description: "Write kits: decompose what you're building into domains with testa
 argument-hint: "[REFS_PATH | --from-code] [--filter PATTERN]"
 ---
 
-> **Note:** `/bp:draft`, `/ck:draft`, `/bp:sketch` are deprecated aliases. Use `/ck:sketch` instead.
+**What this does:** Decomposes your project into domains and writes `context/kits/cavekit-{domain}.md` files with R-numbered requirements and testable acceptance criteria. Implementation-agnostic — describes WHAT, never HOW.
+**When to use it:** First step of every project. Interactive by default; `--from-code` reverse-engineers kits from an existing codebase; passing a refs path generates kits from PRDs/docs.
 
-# Cavekit Draft — Write Kits
+# Cavekit Sketch — Write Kits
 
 This is the first phase of Cavekit. You are writing implementation-agnostic kits that define WHAT to build through collaborative design with the user.
 
@@ -20,8 +21,34 @@ Before doing any substantive work:
 2. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/bp-config.sh" model exploration` and store it as `EXPLORATION_MODEL`.
 3. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/bp-config.sh" model reasoning` and store it as `REASONING_MODEL`.
 4. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/bp-config.sh" caveman-active draft` and treat the result as `CAVEMAN_ACTIVE` (true/false). Draft phase is NOT in the default caveman_phases, so this will typically be false. If true, apply caveman-speak to research agent prompts and internal summaries only — never to kit content, user-facing design proposals, or questions.
+5. If `.cavekit/state.md` exists, update the phase to `drafting`:
+   ```bash
+   node "${CLAUDE_PLUGIN_ROOT}/scripts/cavekit-tools.cjs" status >/dev/null 2>&1 || true
+   ```
+   (If `.cavekit/` is absent, run `/ck:init` first — or skip; sketch works without it.)
 
 Keep the user Q&A in the parent thread. Use `EXPLORATION_MODEL` for helper exploration/research and `REASONING_MODEL` for cavekit generation and review.
+
+## Post-Draft: Auto-classify complexity
+
+After each approved kit is written to `context/kits/cavekit-{domain}.md`, dispatch a lightweight `ck:complexity` subagent to fill the `complexity:` frontmatter field automatically (replaces manual guessing):
+
+```
+Agent(
+  subagent_type: "ck:complexity",
+  model: "haiku",
+  prompt: "Classify the kit at context/kits/cavekit-{domain}.md against the five-axis rubric
+  in skills/complexity-detection/SKILL.md. Return JSON only."
+)
+```
+
+Map the returned `depth` (`quick` / `standard` / `thorough`) into the kit's `complexity:` field (quick → `quick`, standard → `medium`, thorough → `complex`). If the agent returns `needs_research: true`, annotate the kit with:
+
+```html
+<!-- cavekit: needs_research — /ck:map will insert a ck:researcher dependency -->
+```
+
+so `/ck:map` knows to schedule an upstream research task before the main work. Do not run research here — that is `/ck:research`'s or `/ck:map`'s job.
 
 ## Determine Mode
 

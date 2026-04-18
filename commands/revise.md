@@ -1,13 +1,69 @@
 ---
 name: ck-revise
-description: Trace recent manual code fixes back into kits and context files
+description: "Trace recent manual code fixes back into kits and context files. With --trace, run the single-failure backpropagation protocol."
+argument-hint: "[--trace [FAILURE_DESCRIPTION | --from-flag | --from-finding F-ID]]"
+allowed-tools: ["Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/cavekit-tools.cjs:*)", "Bash(git *)", "Read(*)", "Write(*)", "Edit(*)", "Grep(*)", "Glob(*)"]
 ---
 
-> **Note:** `/bp:revise` is deprecated and will be removed in a future version. Use `/ck:revise` instead.
+**What this does:** Traces recent manual code changes back into kits, plans, and context files so the iteration loop can reproduce them autonomously. With `--trace`, runs the six-step backpropagation protocol for a single failure.
+**When to use it:** After a hotfix, a test failure, or a review finding — so the next `/ck:make` cycle does not reintroduce the bug.
 
-# Cavekit Revise — Trace Fixes to Kits
+## Mode: `--trace` (single failure, six-step backpropagation)
 
-You are performing revision: tracing recent manual code changes back into kits, plans, and context files so that the convergence loop can reproduce them autonomously. The core principle: when a fix exists only in code without a corresponding cavekit update, the iteration loop may reintroduce the same defect.
+When `--trace` is passed (or `.cavekit/.auto-backprop-pending.json` exists), run the single-failure backpropagation protocol. This is the manual entry point to the `revision` skill's automated-trace procedure.
+
+### Input resolution
+
+- **`--trace` with no further args** — first check for `.cavekit/.auto-backprop-pending.json`. If present, auto-consume it as if `--from-flag` were passed, and print a one-line notice that you are honouring the pending flag from a failed test run. If absent, ask the user to paste the failure details.
+- **`--trace FAILURE_DESCRIPTION`** — a free-text paragraph. Use verbatim as the trace input.
+- **`--trace --from-flag`** — read `.cavekit/.auto-backprop-pending.json`. Use the recorded `command` and `failure_excerpt`. Delete the flag when done (the auto-backprop hook is idempotent, so deletion is mandatory — otherwise the next stop-hook iteration re-fires the directive).
+- **`--trace --from-finding F-ID`** — read `/ck:review` or Codex review output, pull the finding by ID. Inline-ingest its summary + `file:line` as the trace input.
+
+### Six steps (invoke the `revision` skill, automated-trace subsection)
+
+1. **TRACE** — map the failure to a kit R-ID.
+2. **ANALYZE** — classify: `missing_criterion` / `incomplete_criterion` / `wrong_criterion` / `missing_requirement`.
+3. **PROPOSE** — draft the spec change. **Ask the user to approve before writing.**
+4. **GENERATE** — write a regression test that currently fails.
+5. **VERIFY** — patch code until the test passes.
+6. **LOG** — append an entry to `.cavekit/history/backprop-log.md`.
+
+### After the fix
+
+```
+═══ Trace complete ═══
+Classification: {class}
+Kit: {kit} → {R-ID}{optional AC-ID}
+Regression test: {path}::{test name}
+Fix commit: {sha}
+Pattern category: {category}
+Log entry: .cavekit/history/backprop-log.md #{id}
+```
+
+If three entries in one session share the same `pattern_category`, print a warning and recommend a cross-kit amendment at the brainstorming / sketch layer.
+
+### Critical rules (`--trace` mode)
+
+- Never amend a kit without explicit user approval.
+- The regression test must fail before the fix and pass after. Verify both.
+- Commit the test separately from the fix so the log is auditable.
+- Do not mark the loop's current task complete as part of trace — that is the task-builder's job.
+
+---
+
+## Mode: default (multi-commit revision sweep)
+
+Without `--trace`, perform revision: tracing recent manual code changes back into kits, plans, and context files so that the convergence loop can reproduce them autonomously. The core principle: when a fix exists only in code without a corresponding cavekit update, the iteration loop may reintroduce the same defect.
+
+### Preferred path when `.cavekit/` is present
+
+Revision is a batch case of backpropagation. When `.cavekit/` is present, each manual fix classified below should be routed through the single-failure `--trace` protocol above (same six steps, audit trail to `.cavekit/history/backprop-log.md`):
+
+1. Classify commits (Step 1 below) — unchanged.
+2. For each "Manual fix" commit, instead of inline kit updates in Step 4, invoke `/ck:revise --trace "<fix description from commit message and diff>"`.
+3. The trace flow requires explicit user approval before any kit is amended, and generates a regression test to lock the requirement.
+
+If `.cavekit/` is absent, fall through to the legacy inline flow below.
 
 ## Step 1: Analyze Recent Commits
 

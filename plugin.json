@@ -1,5 +1,5 @@
 {
   "name": "ck",
-  "description": "Cavekit Framework — a methodology for building software with AI coding agents where kits drive the development process — code is derived from them. Includes Hunt lifecycle, prompt pipelines, validation gates, revision, convergence monitoring, and agent team coordination patterns.",
-  "version": "2.0.0"
+  "description": "Cavekit Framework — spec-driven AI development with an autonomous execution loop. Four-command main cycle (sketch → map → make → check) plus /ck:ship one-shot, /ck:review for audits, /ck:revise for kit amendments, /ck:status for progress, /ck:design for the visual system, /ck:research for evidence, /ck:init + /ck:config + /ck:resume + /ck:help for setup. Per-task token budgets, stop-hook state machine, model-tier routing, auto-backpropagation from test failures, tool-result caching, Codex peer review, Karpathy behavioral guardrails, caveman token compression, knowledge-graph integration, and design-system enforcement.",
+  "version": "3.0.0"
 }

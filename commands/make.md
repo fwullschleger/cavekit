@@ -2,14 +2,79 @@
 name: ck-make
 description: "Implement a build site or plan — automatically parallelizes independent tasks and progresses through tiers autonomously"
 argument-hint: "[FILE] [--filter PATTERN] [--peer-review] [--max-iterations N] [--completion-promise TEXT]"
-allowed-tools: ["Bash(${CLAUDE_PLUGIN_ROOT}/scripts/setup-build.sh*)", "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/bp-config.sh*)", "Bash(git *)"]
+allowed-tools: ["Bash(${CLAUDE_PLUGIN_ROOT}/scripts/setup-build.sh:*)", "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/bp-config.sh:*)", "Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/cavekit-tools.cjs:*)", "Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/cavekit-router.cjs:*)", "Bash(git *)"]
 ---
 
-> **Note:** `/bp:build`, `/ck:build`, `/bp:make` are deprecated aliases. Use `/ck:make` instead.
+**What this does:** Runs the autonomous build loop from the build site — parallelizes ready tasks into coherent work packets, validates each against acceptance criteria, merges after every wave, progresses through tiers until all tasks are done.
+**When to use it:** Right after `/ck:map`. Add `--peer-review` to enable Codex tier gates; `--max-iterations N` to cap the loop.
 
-# Cavekit Build — Autonomous Implementation
+# Cavekit Make — Autonomous Implementation
 
-This is the third phase of Cavekit. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/setup-build.sh" $ARGUMENTS`.
+This is the third phase of Cavekit. Execute the setup script:
+
+```!
+"${CLAUDE_PLUGIN_ROOT}/scripts/setup-build.sh" $ARGUMENTS
+```
+
+## Autonomous Runtime Mode (when `.cavekit/` is present)
+
+`setup-build.sh` already calls `cavekit-tools setup-loop` when `node` is on
+`$PATH`, which activates the **stop-hook** (`hooks/stop-hook.sh`). While
+the hook is active, the session is automatically re-prompted after every
+Stop event with the next wave — you do NOT need to re-read the build site
+between tasks yourself. The hook does it for you.
+
+Also load, once at the top of the run, the behavioral skills that every
+task-builder must follow:
+
+- `karpathy-guardrails` — think-before-code, simplicity, surgical changes,
+  goal-driven execution. Applied per task.
+- `autonomous-loop` — the state-machine contract (sentinels, phases, lock
+  protocol). Informs how you emit status.
+- `caveman-internal` — intensity mode (lite / full / ultra) for your own
+  internal artifacts. Consult `cavekit-tools intensity` when writing
+  artifact summaries or handoff memos.
+
+When the stop-hook routes a wave prompt, dispatch `ck:task-builder` subagents
+using the recommended model tier from:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/scripts/cavekit-router.cjs" classify-task \
+  --role ck:task-builder \
+  --files <N> --type <type> --judgment <j> --cross-component <c> --novelty <v> \
+  --budget-pressure <pressure>
+```
+
+When a task completes, mark it complete in the registry so the next wave
+can unblock downstream tasks:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/scripts/cavekit-tools.cjs" mark-complete --task T-XXX
+```
+
+Before writing artifact summaries, handoff memos, or wave logs, consult
+the intensity resolver once per wave:
+
+```bash
+INTENSITY=$(node "${CLAUDE_PLUGIN_ROOT}/scripts/cavekit-tools.cjs" intensity)
+# INTENSITY ∈ {lite, full, ultra}
+```
+
+Apply that intensity to internal artifacts per the `caveman-internal`
+skill. User-facing wave status still respects the existing
+`caveman-active build` check (the two are independent by design).
+
+When the stop-hook reports `CAVEKIT_LOOP_DONE` (all tasks `complete`), emit
+the completion sentinel on its own line as the final message:
+
+```
+<promise>CAVEKIT COMPLETE</promise>
+```
+
+If `.cavekit/task-status.json` does not exist (user did not run `/ck:init`
+or `/ck:map` before this run), fall back to the legacy Ralph-loop flow
+below. The two paths are mutually exclusive: either the stop-hook drives,
+or the agent re-reads `.claude/ralph-loop.local.md` itself.
 
 ## Resolve Execution Profile
 
@@ -245,3 +310,5 @@ Then output the completion promise from the ralph prompt.
 - Progress through tiers autonomously — never pause between waves
 - NEVER output completion promise unless ALL tasks are genuinely DONE
 - NEVER mark a task DONE because existing code "looks related" — verify each acceptance criterion
+
+Next: `/ck:check` to run gap analysis and peer review against the kits.

@@ -4,7 +4,8 @@ description: "Deep research for grounding kits in evidence — current best prac
 argument-hint: "<description> [--depth quick|standard|deep] [--web-only] [--codebase-only]"
 ---
 
-> **Note:** `/bp:research` is deprecated and will be removed in a future version. Use `/ck:research` instead.
+**What this does:** Runs parallel multi-agent research (codebase exploration + web search) and produces a named research brief in `context/refs/` to ground kits in evidence. Dispatches 2–8 agents depending on project size and depth; two-pass synthesizer cross-validates findings and resolves contradictions.
+**When to use it:** Before `/ck:sketch` on novel domains or fast-moving best-practice areas. Also integrated into `/ck:sketch` — it will offer to run research when warranted.
 
 # Cavekit Research — Deep Multi-Agent Research
 
@@ -33,6 +34,13 @@ Before dispatching any research agents:
 3. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/bp-config.sh" model reasoning` and treat the result as `REASONING_MODEL`.
 
 Use `EXPLORATION_MODEL` for codebase/web researchers and `REASONING_MODEL` for the synthesizer.
+
+For single-topic, quick briefs (depth: quick or a narrow scope), prefer
+dispatching the `ck:researcher` agent once instead of the full multi-agent
+fan-out. The agent follows the shared source-order contract (repo →
+graphify → references → web) and produces a standard brief with citations.
+Use the multi-agent flow below for broader topics, depth `standard`/`deep`,
+or when the description spans multiple independent subtopics.
 
 ## Step 1: Assess Project Size
 

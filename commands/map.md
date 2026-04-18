@@ -4,9 +4,10 @@ description: "Generate a build site from kits — the task dependency graph that
 argument-hint: "[--filter PATTERN]"
 ---
 
-> **Note:** `/bp:architect`, `/ck:architect`, `/bp:map` are deprecated aliases. Use `/ck:map` instead.
+**What this does:** Reads your kits and generates a build site — a dependency-ordered task graph that tells the builder what to build and in what order. No domain plans, no file ownership: just tasks, requirement mappings, and blockers.
+**When to use it:** Right after `/ck:sketch`. If multiple kits exist, use `--filter PATTERN` to scope.
 
-# Cavekit Architect — Generate Build Site
+# Cavekit Map — Generate Build Site
 
 This is the second phase of Cavekit. You read kits and generate a build site — a dependency-ordered task graph that tells the builder what to build and in what order.
 
@@ -156,6 +157,69 @@ Rules for the graph:
 - Use `graph LR` (left-to-right) for readability
 - Group by tier visually where possible
 
+## Step 6.5: Populate the runtime task registry (when `.cavekit/` exists)
+
+If `.cavekit/` is present (user ran `/ck:init`), also emit a flat JSON task
+list so the autonomous runtime can route through the build wave-by-wave:
+
+1. Assemble a flat JSON array, one entry per task:
+
+   ```json
+   [
+     {"id":"T-001","title":"…","tier":1,"depends_on":[],"depth":"standard",
+      "kit":"cavekit-auth.md","requirement_ids":["R001","R002"]}
+   ]
+   ```
+
+   `depth` for each task comes from the kit's `complexity` field (populated by
+   `/ck:sketch`'s post-draft classifier), or from an on-demand dispatch to
+   the `ck:complexity` subagent when missing. Map
+   `quick` → `quick`, `medium` → `standard`, `complex` → `thorough`.
+
+2. Write the array to `.cavekit/tasks.json`.
+
+3. Initialize the task registry:
+
+   ```bash
+   node "${CLAUDE_PLUGIN_ROOT}/scripts/cavekit-tools.cjs" init-registry \
+     --from .cavekit/tasks.json
+   ```
+
+   This writes `.cavekit/task-status.json` in the registry schema
+   (`pending | implementing | complete | blocked`), which the stop-hook
+   reads to compute the frontier.
+
+4. For tasks whose kit carries a `<!-- cavekit: needs_research -->`
+   annotation (from `/ck:sketch`), prepend a research task:
+   - id: `T-0{n}-research`
+   - depends_on: `[]`
+   - depth: `standard`
+   - Add the research task id to the main task's `depends_on`
+
+   When `/ck:make` hits such a task, it dispatches the `ck:researcher`
+   agent instead of `ck:task-builder`, stores the brief to
+   `context/refs/research-{topic}.md`, and marks the research task complete.
+
+5. Record the recommended model tier per task for the runtime to consult:
+
+   ```bash
+   for t in $(jq -r '.[].id' .cavekit/tasks.json); do
+     files=$(jq -r --arg id "$t" '.[] | select(.id==$id) | (.requirement_ids|length)' .cavekit/tasks.json)
+     depth=$(jq -r --arg id "$t" '.[] | select(.id==$id) | .depth' .cavekit/tasks.json)
+     # score heuristic: files = requirement_ids count, type=feature, depth maps to judgment
+     node "${CLAUDE_PLUGIN_ROOT}/scripts/cavekit-router.cjs" classify-task \
+       --role ck:task-builder \
+       --files "$files" \
+       --type feature \
+       --judgment medium \
+       --cross-component 0 \
+       --novelty known
+   done
+   ```
+
+   (Recording the chosen tier per task in the registry is a future
+   enhancement; today the router is consulted at wave dispatch time.)
+
 ## Step 7: Report
 
 ```markdown
@@ -165,6 +229,7 @@ Rules for the graph:
 ### Tasks Generated: {count}
 ### Tiers: {count}
 ### Tier 0 Tasks: {count} (can run in parallel immediately)
+### Runtime registry: {initialized / skipped — no .cavekit/}
 
 ### Next Step
 Run `/ck:make` to start implementation (auto-parallelizes independent tasks).

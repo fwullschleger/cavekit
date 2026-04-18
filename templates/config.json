@@ -1,0 +1,38 @@
+{
+  "session_budget": 500000,
+  "max_iterations": 60,
+  "default_depth": "standard",
+  "task_budgets": {
+    "quick": 8000,
+    "standard": 20000,
+    "thorough": 45000
+  },
+  "auto_backprop": true,
+  "caveman": {
+    "enabled": true,
+    "default_intensity": "full",
+    "phases": ["build", "inspect", "review", "verify"]
+  },
+  "parallelism": {
+    "max_concurrent_agents": 3,
+    "max_concurrent_per_repo": 2
+  },
+  "hooks_config": {
+    "test_filter": true,
+    "tool_cache": true,
+    "tool_cache_ttl_ms": 120000,
+    "progress_tracker": true
+  },
+  "model_routing": {
+    "enabled": true,
+    "cost_weights": { "haiku": 1, "sonnet": 5, "opus": 25 }
+  },
+  "verification": { "enabled": true, "min_depth": "standard", "stub_detection": true },
+  "review": { "enabled": true, "min_depth": "standard", "max_iterations_per_task": 3 },
+  "backprop": {
+    "auto_generate_regression_tests": true,
+    "re_run_after_spec_update": false,
+    "pattern_threshold": 3
+  },
+  "graphify": { "enabled": false, "graph_path": "graphify-out/graph.json" }
+}

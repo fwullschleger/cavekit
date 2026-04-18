@@ -93,7 +93,7 @@ A single-file (`docs.html`) documentation page with sticky sidebar navigation, d
   - Usage example in terminal code block
   - Flags/options table if applicable (e.g., `--from-code`, `--filter`)
   - Links to related commands
-- [ ] Commands covered: `/ck:sketch`, `/ck:map`, `/ck:make`, `/ck:check`, `/ck:research`, `/ck:progress`, `/ck:scan`, `/ck:revise`, `/ck:judge`, `/ck:help`
+- [ ] Commands covered: `/ck:sketch`, `/ck:map`, `/ck:make`, `/ck:check`, `/ck:ship`, `/ck:init`, `/ck:design`, `/ck:research`, `/ck:revise`, `/ck:review`, `/ck:status`, `/ck:config`, `/ck:resume`, `/ck:help`
 - [ ] Content derived from README "Commands" section + individual command descriptions
 
 ### R9: Methodology Section

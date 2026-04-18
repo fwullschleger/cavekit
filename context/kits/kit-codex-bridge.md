@@ -26,7 +26,7 @@ User-configurable settings for Codex integration behavior.
 - [ ] Default: `codex_review = "auto"`
 
 ### R3: Peer-Review-Loop Replacement
-When Codex is available, it becomes the sole adversary in Cavekit's peer-review-loop, replacing the MCP-based adversary.
+When Codex is available, it becomes the sole adversary in Cavekit's peer-review loop (see the `peer-review` skill's Codex Loop Mode), replacing the MCP-based adversary.
 - [ ] Replace MCP-based adversary invocation with `/codex:adversarial-review` delegation
 - [ ] Pass the current diff context (worktree base to HEAD) to Codex
 - [ ] Parse Codex review output into Cavekit's existing finding format (severity P0-P3, file, line, description)
@@ -34,7 +34,7 @@ When Codex is available, it becomes the sole adversary in Cavekit's peer-review-
 - [ ] Findings tagged with `source: codex` in `impl-review-findings.md`
 
 ### R4: Standalone Review Command
-A `/ck:judge` command that invokes Codex adversarial review on demand.
+A `/ck:review --codex` mode that invokes Codex adversarial review on demand.
 - [ ] Default target: current build tier's diff against worktree base
 - [ ] Accept `--base <ref>` override for custom diff range
 - [ ] Output findings in Cavekit's standard finding format to stdout

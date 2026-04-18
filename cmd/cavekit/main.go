@@ -91,6 +91,12 @@ func runStatus() {
 		os.Exit(1)
 	}
 
+	// Autonomous runtime status first, when present.
+	if st, ok := readCavekitStatus(root); ok {
+		fmt.Println(st)
+		fmt.Println()
+	}
+
 	worktrees, err := worktree.DiscoverAll(root)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "discover worktrees: %s\n", err)
@@ -116,6 +122,47 @@ func runStatus() {
 			fmt.Printf("%s %s: %s\n", icon, wt.SiteName, wt.Path)
 		}
 	}
+}
+
+// readCavekitStatus runs cavekit-tools.cjs status in the project root when a
+// runtime state file exists, returning the printed status block.
+func readCavekitStatus(root string) (string, bool) {
+	stateFile := filepath.Join(root, ".cavekit", "state.md")
+	if _, err := os.Stat(stateFile); err != nil {
+		return "", false
+	}
+	node, err := osexec.LookPath("node")
+	if err != nil {
+		return "", false
+	}
+	// Resolve plugin script path relative to this binary. Prefer an env override.
+	script := os.Getenv("CAVEKIT_TOOLS_SCRIPT")
+	if script == "" {
+		// Look for scripts/cavekit-tools.cjs next to the binary or the repo root.
+		candidates := []string{
+			filepath.Join(root, "scripts", "cavekit-tools.cjs"),
+			filepath.Join(os.Getenv("CLAUDE_PLUGIN_ROOT"), "scripts", "cavekit-tools.cjs"),
+		}
+		for _, c := range candidates {
+			if c == "" {
+				continue
+			}
+			if _, err := os.Stat(c); err == nil {
+				script = c
+				break
+			}
+		}
+	}
+	if script == "" {
+		return "", false
+	}
+	cmd := osexec.Command(node, script, "status", "--cavekit-dir", filepath.Join(root, ".cavekit"))
+	cmd.Dir = root
+	out, err := cmd.Output()
+	if err != nil {
+		return "", false
+	}
+	return string(out), true
 }
 
 // computeWorktreeProgress reads site and impl files to compute task progress.
@@ -185,6 +232,19 @@ func runDebug() {
 func runReset() {
 	store := session.NewStore("")
 	os.Remove(store.Path())
+
+	// Clear autonomous-runtime transient state as well. Leave config and
+	// history intact — those are user-owned.
+	executor := exec.NewRealExecutor()
+	wtMgr := worktree.NewManager(executor)
+	cwd, _ := os.Getwd()
+	root, err := wtMgr.ProjectRoot(nil, cwd)
+	if err == nil {
+		ck := filepath.Join(root, ".cavekit")
+		for _, name := range []string{".loop.json", ".loop.lock", ".progress.json", ".auto-backprop-pending.json", ".debug.log"} {
+			os.Remove(filepath.Join(ck, name))
+		}
+	}
 	fmt.Println("State cleared.")
 }
 

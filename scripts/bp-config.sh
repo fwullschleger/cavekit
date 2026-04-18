@@ -34,6 +34,21 @@ _bp_config_default() {
     speculative_review_timeout) echo "" ;;
     caveman_mode) echo "on" ;;
     caveman_phases) echo "build,inspect" ;;
+    # Runtime loop knobs (v2.1).
+    session_budget) echo "500000" ;;
+    max_iterations) echo "60" ;;
+    task_budget_quick) echo "8000" ;;
+    task_budget_standard) echo "20000" ;;
+    task_budget_thorough) echo "45000" ;;
+    auto_backprop) echo "on" ;;
+    tool_cache) echo "on" ;;
+    tool_cache_ttl_ms) echo "120000" ;;
+    test_filter) echo "on" ;;
+    progress_tracker) echo "on" ;;
+    parallelism_max_agents) echo "3" ;;
+    parallelism_max_per_repo) echo "2" ;;
+    model_routing) echo "on" ;;
+    graphify_enabled) echo "off" ;;
     *) echo "" ;;
   esac
 }
@@ -83,18 +98,30 @@ _bp_config_validate() {
       local phase
       local IFS=','
       for phase in $value; do
-        case "$phase" in build|inspect|draft|architect) ;; *)
-          echo "bp_config_set: invalid phase '$phase' in '$key' (allowed: build,inspect,draft,architect)" >&2
+        case "$phase" in build|inspect|draft|architect|review|verify) ;; *)
+          echo "bp_config_set: invalid phase '$phase' in '$key' (allowed: build,inspect,draft,architect,review,verify)" >&2
           return 1
           ;; esac
       done
       return 0
       ;;
+    session_budget|max_iterations|task_budget_quick|task_budget_standard|task_budget_thorough|tool_cache_ttl_ms|parallelism_max_agents|parallelism_max_per_repo)
+      case "$value" in ''|*[!0-9]*) ;;
+        *) return 0 ;;
+      esac
+      echo "bp_config_set: invalid value '$value' for '$key' (allowed: positive integer)" >&2
+      return 1
+      ;;
+    auto_backprop|tool_cache|test_filter|progress_tracker|model_routing|graphify_enabled)
+      case "$value" in on|off) return 0 ;; esac
+      echo "bp_config_set: invalid value '$value' for '$key' (allowed: on off)" >&2
+      return 1
+      ;;
     *) return 0 ;;
   esac
 }
 
-_BP_CONFIG_KEYS="bp_model_preset codex_review codex_model codex_effort tier_gate_mode command_gate command_gate_model command_gate_timeout command_gate_allowlist command_gate_blocklist speculative_review speculative_review_timeout caveman_mode caveman_phases"
+_BP_CONFIG_KEYS="bp_model_preset codex_review codex_model codex_effort tier_gate_mode command_gate command_gate_model command_gate_timeout command_gate_allowlist command_gate_blocklist speculative_review speculative_review_timeout caveman_mode caveman_phases session_budget max_iterations task_budget_quick task_budget_standard task_budget_thorough auto_backprop tool_cache tool_cache_ttl_ms test_filter progress_tracker parallelism_max_agents parallelism_max_per_repo model_routing graphify_enabled"
 
 bp_global_config_path() {
   if [[ -n "${BP_GLOBAL_CONFIG_PATH:-}" ]]; then

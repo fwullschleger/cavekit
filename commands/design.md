@@ -4,7 +4,8 @@ description: "Create or update the project's DESIGN.md — the visual design sys
 argument-hint: "[--import <name>] [--from-site <url>] [--audit] [--section <1-9>]"
 ---
 
-> **Note:** `/bp:design` is deprecated and will be removed in a future version. Use `/ck:design` instead.
+**What this does:** Creates, imports, updates, or audits the project's visual design system document. DESIGN.md follows the 9-section Google Stitch format and becomes the authoritative visual reference every agent consults when building UI.
+**When to use it:** Before `/ck:sketch` when the project has UI. `--import <name>` bootstraps from a known design system; `--from-site <url>` extracts tokens from a live site; `--audit` checks an existing DESIGN.md for gaps.
 
 # Cavekit Design — Create or Update DESIGN.md
 

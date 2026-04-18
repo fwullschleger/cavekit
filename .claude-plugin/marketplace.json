@@ -1,0 +1,14 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "cavekit-marketplace",
+  "description": "Cavekit — autonomous spec-driven development loop for Claude Code",
+  "owner": { "name": "Julius Brussee" },
+  "plugins": [
+    {
+      "name": "ck",
+      "description": "Cavekit Framework — Hunt lifecycle with autonomous loop, per-task budgets, routing, and auto-revision",
+      "source": "./",
+      "category": "development"
+    }
+  ]
+}
