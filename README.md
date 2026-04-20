@@ -34,34 +34,28 @@ That's the whole pitch.
 
 ## install
 
-### full plugin (all three commands + both skills)
+One line, via the `skills` CLI — installs commands and skills together:
 
-Marketplace:
+```bash
+npx skills add JuliusBrussee/cavekit
+```
+
+Drops `/ck:spec`, `/ck:build`, `/ck:check` into `~/.claude/commands/` and
+the `caveman` + `backprop` skills into `~/.claude/skills/`. Claude Code
+picks them up on next launch.
+
+Or via the Claude Code marketplace:
 
 ```bash
 /plugin marketplace add juliusbrussee/cavekit
 /plugin install ck@cavekit
 ```
 
-Git:
+Or clone directly:
 
 ```bash
 git clone https://github.com/juliusbrussee/cavekit.git ~/.claude/plugins/cavekit
 ```
-
-Commands become available as `/ck:spec`, `/ck:build`, `/ck:check`.
-
-### caveman skill alone (npx, no plugin)
-
-If you just want the caveman encoding skill (to compress your own prompts
-or specs, outside the cavekit command flow):
-
-```bash
-npx skills add JuliusBrussee/cavekit
-```
-
-One-shot installer. Copies `SKILL.md` to `~/.claude/skills/caveman/`.
-Claude Code picks it up on next launch.
 
 ## format
 

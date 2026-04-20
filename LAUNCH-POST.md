@@ -102,16 +102,20 @@ your old kits live in git history).
 It is a two-way door. `SPEC.md` is plain markdown. Nothing traps you in
 either direction.
 
-## also: caveman as a standalone skill
+## install
 
-If you just want the compression skill and not the rest:
+One line:
 
 ```bash
 npx skills add JuliusBrussee/cavekit
 ```
 
-One-shot installer. Copies the skill to `~/.claude/skills/caveman/`. No
-plugin, no commands, no opinions about how you work.
+Or via the Claude Code marketplace:
+
+```bash
+/plugin marketplace add juliusbrussee/cavekit
+/plugin install ck@cavekit
+```
 
 ## what I'm not doing
 

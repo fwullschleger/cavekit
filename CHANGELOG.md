@@ -20,8 +20,7 @@ Kept only what earned its tokens:
 - bug → §B → §V backprop reflex wired into `/ck:build` failure path
 - `/ck:spec from-code` — distill spec from existing codebase
 - `/ck:check` — read-only drift report (replaces five v3 review flavors)
-- standalone `npx skills add JuliusBrussee/cavekit` path for installing
-  the caveman skill alone, no plugin required
+- `npx skills add JuliusBrussee/cavekit` one-line install path (commands + skills)
 
 ### removed (relative to v3.1.0)
 
