@@ -25,11 +25,20 @@ Before starting waves:
 4. Use that exact `EXECUTION_MODEL` string in every `ck:task-builder` delegation below. Do not hard-code `opus`, `sonnet`, or `haiku` in this command.
 5. If `CAVEMAN_ACTIVE` is `true`, all your own wave logs, iteration summaries, and status reports in this command should use caveman-speak (drop articles, filler, pleasantries — keep technical terms exact, code blocks unchanged). Spec artifacts (kits, build sites, impl tracking field values) stay in normal prose.
 
+## Paths
+
+All documentation paths are local:
+- Kits: `context/kits/`
+- Build site: `context/plans/`
+- Impl tracking: `context/impl/`
+
+Code is always written to the actual project repo.
+
 ## Pre-flight Coverage Check
 
 Before entering the execution loop, validate that the build site covers all cavekit requirements:
 
-1. Read the build site and all cavekit files referenced in it
+1. Read the build site and all cavekit files referenced in it (from the resolved paths)
 2. If the build site contains a **Coverage Matrix** section, scan it for any rows with status `GAP`
 3. If no Coverage Matrix exists, perform a quick manual check: for each cavekit requirement, confirm at least one task in the build site references it
 4. **If gaps are found**, report them before starting:
@@ -53,7 +62,7 @@ Once the setup script completes (outputs the ralph prompt), you run the executio
 
 ### Each Wave
 
-1. **Read state**: Read the build site/plan + scoped `context/impl/impl-*.md` files + `context/impl/dead-ends.md`. **Scoping rule:** only read impl files that contain `Build site: <this site's path>` (or matching basename). Ignore impl files declaring a different build site. If no scoped files exist, fall back to reading all impl files. If this is the first wave of a new tier, capture the tier start ref: `TIER_START_REF=$(git rev-parse HEAD)`
+1. **Read state**: Read the build site/plan + scoped impl files (`impl-*.md` + `dead-ends.md`) from the resolved impl tracking path. **Scoping rule:** only read impl files that contain `Build site: <this site's path>` (or matching basename). Ignore impl files declaring a different build site. If no scoped files exist, fall back to reading all impl files. If this is the first wave of a new tier, capture the tier start ref: `TIER_START_REF=$(git rev-parse HEAD)`
 2. **Compute frontier**: Find all tasks that are NOT done AND whose `blockedBy` dependencies are ALL done
 3. **Report**:
    ```

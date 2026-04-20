@@ -3,6 +3,7 @@
 # Cavekit Build Setup Script
 # Archives old cycle, reads build site, starts Ralph Loop.
 # Optionally configures Codex MCP for peer review.
+# All paths are local (context/).
 
 set -euo pipefail
 
@@ -109,6 +110,13 @@ done
 BP_PRESET_SUMMARY="$(bp_config_summary_line)"
 echo "$BP_PRESET_SUMMARY"
 
+# ─── Paths ─────────────────────────────────────────────────────────────────
+
+PLANS_DIR="context/plans"
+PLANS_DIR_LEGACY="context/sites"
+IMPL_DIR="context/impl"
+KITS_DIR="context/kits"
+
 # ─── Clean stale state ──────────────────────────────────────────────────────
 
 rm -f .claude/ralph-loop.local.md
@@ -116,8 +124,8 @@ rm -f .claude/ralph-loop.local.md
 # ─── Find build site ────────────────────────────────────────────────────────
 #
 # Strategy:
-#   1. Search context/plans/ first (current convention)
-#   2. Fall back to context/sites/ (legacy, backward compatible)
+#   1. Search PLANS_DIR first (current convention)
+#   2. Fall back to PLANS_DIR_LEGACY (legacy, backward compatible)
 #   3. Exclude archive/ subdirectory (completed builds)
 #   4. If --filter is set, match filter anywhere in filename
 #   5. If multiple candidates, list them for user selection
@@ -138,13 +146,19 @@ fi
 
 if [[ -z "$FRONTIER_FILE" ]]; then
 
-for candidate_dir in "context/plans" "context/sites"; do
+# Build list of directories to search
+SEARCH_DIRS=("$PLANS_DIR")
+if [[ -n "$PLANS_DIR_LEGACY" ]]; then
+  SEARCH_DIRS+=("$PLANS_DIR_LEGACY")
+fi
+
+for candidate_dir in "${SEARCH_DIRS[@]}"; do
   if [[ -d "$candidate_dir" ]]; then
     while IFS= read -r -d '' f; do
       # Skip archive directory
       [[ "$f" == *"/archive/"* ]] && continue
-      # Skip non-buildable files (must have site, plan, or frontier in name)
       bn="$(basename "$f")"
+      # Must have site, plan, or frontier in name
       [[ "$bn" != *site* && "$bn" != *plan* && "$bn" != *frontier* ]] && continue
       # Skip overview/index files (not buildable)
       [[ "$bn" == *overview* ]] && continue
@@ -194,11 +208,11 @@ else
   for f in "${CANDIDATES[@]}"; do
     task_count=$(grep -cE '\|\s*T-([A-Za-z0-9]+-)*[0-9]+\s*\|' "$f" 2>/dev/null || echo "?")
     done_count=0
-    if [[ -d "context/impl" ]]; then
+    if [[ -d "$IMPL_DIR" ]]; then
       # Find impl files scoped to this build site (have "Build site: <path>" line)
       SCOPED_IMPL_FILES=()
       UNSCOPED_IMPL_FILES=()
-      for impl_f in context/impl/impl-*.md; do
+      for impl_f in "$IMPL_DIR"/impl-*.md; do
         [[ ! -f "$impl_f" ]] && continue
         declared_site=$(sed -n 's/^Build site:[[:space:]]*\([^[:space:]]*\).*/\1/p' "$impl_f" 2>/dev/null | head -1)
         if [[ -n "$declared_site" ]]; then
@@ -251,10 +265,10 @@ fi  # end discovery block (skipped when EXPLICIT_FILE is set)
 # so the next build cycle knows what's already done.
 
 ARCHIVE_COUNT=0
-if [[ -d "context/impl" ]]; then
+if [[ -d "$IMPL_DIR" ]]; then
   HAS_OLD=false
-  [[ -f "context/impl/loop-log.md" ]] && HAS_OLD=true
-  for f in context/impl/impl-*.md; do
+  [[ -f "$IMPL_DIR/loop-log.md" ]] && HAS_OLD=true
+  for f in "$IMPL_DIR"/impl-*.md; do
     [[ -f "$f" ]] && HAS_OLD=true && break
   done
 
@@ -265,7 +279,7 @@ if [[ -d "context/impl" ]]; then
       # Find impl files associated with this build site
       ARCHIVE_CHECK_FILES=()
       ARCHIVE_UNSCOPED_FILES=()
-      for impl_f in context/impl/impl-*.md; do
+      for impl_f in "$IMPL_DIR"/impl-*.md; do
         [[ ! -f "$impl_f" ]] && continue
         declared_site=$(sed -n 's/^Build site:[[:space:]]*\([^[:space:]]*\).*/\1/p' "$impl_f" 2>/dev/null | head -1)
         if [[ -n "$declared_site" ]]; then
@@ -296,13 +310,13 @@ if [[ -d "context/impl" ]]; then
     fi
 
     if [[ "$SHOULD_ARCHIVE" == "true" ]]; then
-      ARCHIVE_DIR="context/impl/archive/$(date -u +%Y%m%d-%H%M%S)"
+      ARCHIVE_DIR="$IMPL_DIR/archive/$(date -u +%Y%m%d-%H%M%S)"
       mkdir -p "$ARCHIVE_DIR"
 
-      for f in context/impl/loop-log.md context/impl/peer-review-findings.md context/peer-review-findings.md; do
+      for f in "$IMPL_DIR/loop-log.md" "$IMPL_DIR/peer-review-findings.md" "context/peer-review-findings.md"; do
         [[ -f "$f" ]] && mv "$f" "$ARCHIVE_DIR/" && ARCHIVE_COUNT=$((ARCHIVE_COUNT + 1))
       done
-      for f in context/impl/impl-*.md; do
+      for f in "$IMPL_DIR"/impl-*.md; do
         [[ -f "$f" ]] && [[ "$(basename "$f")" != "CLAUDE.md" ]] && mv "$f" "$ARCHIVE_DIR/" && ARCHIVE_COUNT=$((ARCHIVE_COUNT + 1))
       done
 
@@ -318,12 +332,14 @@ fi
 # ─── Discover specs and refs ────────────────────────────────────────────────
 
 SPEC_FILES=()
-if [[ -d "context/kits" ]]; then
+if [[ -d "$KITS_DIR" ]]; then
   while IFS= read -r -d '' f; do
-    [[ "$(basename "$f")" == "CLAUDE.md" ]] && continue
+    bn="$(basename "$f")"
+    [[ "$bn" == "CLAUDE.md" ]] && continue
+    [[ "$bn" == "chapter.md" ]] && continue
     if [[ -n "$FILTER" ]] && [[ "$f" != *"$FILTER"* ]]; then continue; fi
     SPEC_FILES+=("$f")
-  done < <(find context/kits -name "*.md" -type f -print0 2>/dev/null | sort -z)
+  done < <(find "$KITS_DIR" -name "*.md" -type f -print0 2>/dev/null | sort -z)
 fi
 
 SPEC_LISTING=""
@@ -409,7 +425,7 @@ If iteration % $REVIEW_INTERVAL == 0, this is a REVIEW iteration:
    source scripts/codex-review.sh && bp_codex_review --base main
    \`\`\`
    This sends the diff to Codex for adversarial review and writes parsed findings
-   to \`context/impl/impl-review-findings.md\` automatically.
+   to \`${IMPL_DIR}/impl-review-findings.md\` automatically.
 
 2. Read the findings output and fix all P0 (critical) and P1 (high) findings immediately
 3. Mark fixed findings as FIXED in the findings file
@@ -432,7 +448,7 @@ If iteration % $REVIEW_INTERVAL == 0, this is a REVIEW iteration:
    > For each issue: Severity (CRITICAL/HIGH/MEDIUM/LOW), File, Issue, Suggestion.
    > If you find zero issues, explain what you checked and why it's correct.
 
-3. Write findings to \`context/impl/peer-review-findings.md\`
+3. Write findings to \`${IMPL_DIR}/peer-review-findings.md\`
 4. Fix all CRITICAL and HIGH findings immediately
 5. Mark fixed findings as FIXED
 
@@ -447,9 +463,9 @@ You are implementing tasks from a build site. Each iteration: find the next
 unblocked task, read its cavekit, implement it, validate, commit.
 
 ## Read These First (every iteration)
-1. \`context/impl/loop-log.md\` — your iteration history (if exists)
+1. \`${IMPL_DIR}/loop-log.md\` — your iteration history (if exists)
 2. \`$FRONTIER_FILE\` — the task dependency graph
-3. Impl tracking files in \`context/impl/\` — but ONLY files that are scoped to this build site.
+3. Impl tracking files in \`${IMPL_DIR}/\` — but ONLY files that are scoped to this build site.
    An impl file is scoped if it contains \`Build site: $FRONTIER_FILE\` (or the matching basename).
    Ignore impl files that declare a different build site. If no scoped files exist, read all impl files.
 
@@ -479,7 +495,7 @@ $(echo -e "$SPEC_LISTING")
 If stuck 2+ attempts → document as dead end, move on.
 
 ### 5. Track
-Update \`context/impl/impl-{domain}.md\` (create if missing):
+Update \`${IMPL_DIR}/impl-{domain}.md\` (create if missing):
 
 \`\`\`markdown
 ---
@@ -498,7 +514,7 @@ Build site: $FRONTIER_FILE
 The \`Build site:\` line is REQUIRED — it scopes this impl file to the correct build site
 so task IDs don't collide across different build sites.
 
-Append to \`context/impl/loop-log.md\` (create if missing):
+Append to \`${IMPL_DIR}/loop-log.md\` (create if missing):
 
 \`\`\`markdown
 ### Iteration N — {timestamp}

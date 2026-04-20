@@ -15,6 +15,10 @@ Creates the full context hierarchy for a Cavekit project. Run once at the start 
 - **Non-destructive** — never overwrites existing files.
 - **No questions** — does not ask what you're building (that's `/ck:sketch`).
 
+## Step 0: Mode
+
+`/ck:init` always creates the local context hierarchy. To set up a wiki project, use any command with `--wiki` (e.g., `/ck:sketch --wiki`) — project discovery happens on first wiki-mode invocation.
+
 ## Step 1: Scan Existing Project Structure
 
 Detect top-level directories that contain source code or other project artifacts:

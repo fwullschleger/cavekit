@@ -19,6 +19,7 @@
   <a href="#install">Install</a> •
   <a href="#before--after">Before/After</a> •
   <a href="#how-it-works">How It Works</a> •
+  <a href="#wiki-mode">Wiki Mode</a> •
   <a href="#quick-start">Quick Start</a> •
   <a href="#parallel-execution">Parallel Execution</a> •
   <a href="#codex-adversarial-review">Codex Review</a> •
@@ -29,6 +30,11 @@
 <p align="center">
   Part of the <a href="https://github.com/JuliusBrussee/caveman">Caveman</a> ecosystem
 </p>
+
+> **Fork notice:** This is a fork of [JuliusBrussee/cavekit](https://github.com/JuliusBrussee/cavekit).
+> Thanks to Julius Brussee for building the original Cavekit framework.
+> This fork adds wiki-mode documentation integration — specs, overviews, scopes, kits, and
+> build sites that write to a Grav wiki alongside the core build pipeline.
 
 ---
 
@@ -136,21 +142,21 @@ Registers the plugin with Claude Code, syncs into Codex marketplace, installs th
 
 ## How It Works
 
-Four phases. Each one a slash command.
+The full pipeline — pre-sketch documentation, core build, and post-build scoping:
 
 ```
-  RESEARCH         DRAFT            ARCHITECT           BUILD              INSPECT
-  ────────         ─────            ─────────           ─────              ───────
-  (optional)       "What are we     Break into tasks,   Auto-parallel:     Gap analysis:
-  Multi-agent       building?"      map dependencies,    /ck:make          built vs.
-  codebase +                        organize into        groups work        intended.
-  web research     Produces:        tiered build site    into adaptive      Peer review.
-                   kits with        + dependency graph   subagent packets   Trace to specs.
-  Produces:        R-numbered                            tier by tier
-  research brief   requirements     Produces:                               Produces:
-                                    task graph           Codex reviews      findings report
-                   Codex challenges                      every tier gate
-                   the design
+  PRE-SKETCH         RESEARCH         DRAFT            ARCHITECT           BUILD              INSPECT         POST-MAP
+  ──────────         ────────         ─────            ─────────           ─────              ───────         ────────
+  (optional)         (optional)       "What are we     Break into tasks,   Auto-parallel:     Gap analysis:   Effort
+  Document           Multi-agent       building?"      map dependencies,    /ck:make          built vs.       estimation
+  current state      codebase +                        organize into        groups work        intended.       from build
+  + define           web research     Produces:        tiered build site    into adaptive      Peer review.    site tasks
+  what to build                       kits with        + dependency graph   subagent packets   Trace to specs.
+                     Produces:        R-numbered                            tier by tier                       Produces:
+  /ck:overview       research brief   requirements     Produces:                               Produces:       scope with
+  /ck:spec                                             task graph           Codex reviews      findings report AI-adjusted
+                                      Codex challenges                      every tier gate                    estimates
+                                      the design                                               /ck:scope
 ```
 
 ### 0. Research — ground the design (optional)
@@ -282,6 +288,48 @@ CAVEKIT COMPLETE — 8 tasks in 8 iterations.
 ```
 
 See [example.md](example.md) for full annotated sessions.
+
+---
+
+## Wiki Mode
+
+CaveKit can optionally publish documentation to the [sanetics Grav wiki](https://github.com/sanetics/sanetics-wiki) using the `--wiki` flag. By default, all output goes to the local `context/` directory.
+
+### How It Works
+
+1. **Opt-in** — pass `--wiki` to any eligible command (`/ck:spec`, `/ck:overview`, `/ck:scope`, `/ck:sketch`, `/ck:map`).
+2. **Project discovery** — CaveKit finds (or creates) a project folder in the wiki by matching the current branch and remote URL.
+3. **Flagged docs go to wiki** — specs, overviews, kits, build sites, scopes.
+4. **Auto-commit** — every wiki write auto-commits with a structured message. No push (manual decision).
+5. **Without `--wiki`** — all commands write to `context/`. This is the default.
+
+### Wiki Project Structure
+
+```
+~/workspaces/sanetics/sanetics-wiki/pages/08.projects/<project>/
+├── chapter.md                                    ← project metadata
+├── 01.YYYY-MM-DD-HHmm-spec-<topic>/
+│   └── spec-<topic>.md                           ← /ck:spec
+├── 02.YYYY-MM-DD-HHmm-overview-<topic>/
+│   └── overview-<topic>.md                       ← /ck:overview
+├── 03.YYYY-MM-DD-HHmm-scope-<topic>/
+│   └── scope-<topic>.md                          ← /ck:scope
+├── 10.kits/
+│   ├── chapter.md
+│   └── cavekit-<domain>.md                       ← /ck:sketch
+├── 11.build-site/
+│   ├── chapter.md
+│   └── build-site.md                             ← /ck:map
+└── 12.impl/
+    ├── chapter.md
+    └── impl-<domain>.md                          ← /ck:make tracking
+```
+
+### Kit-Style Document Format
+
+Pre-sketch documents (`/ck:spec`, `/ck:overview`) and post-map scopes (`/ck:scope`) use **kit-style density** — terse, structured, token-optimized. Tables over prose. Mermaid diagrams over text descriptions. Every spec and overview must include diagrams (class, component, sequence, state — whatever fits best).
+
+This format is optimized for agent consumption and iteration. The density is intentional — stakeholders read the diagrams and tables; agents read the structure.
 
 ---
 
@@ -465,10 +513,13 @@ Settings live in two places:
 
 | Command | Phase | What it does |
 |---------|-------|-------------|
+| `/ck:overview` | Pre-sketch | Document current codebase state → wiki |
+| `/ck:spec` | Pre-sketch | Write agent-optimized feature specification → wiki |
 | `/ck:research` | Research | Multi-agent codebase + web research, produces brief |
 | `/ck:design` | Design | Create, import, audit, or update DESIGN.md |
 | `/ck:sketch` | Draft | Decompose requirements into domain kits |
 | `/ck:map` | Architect | Generate tiered build site from kits |
+| `/ck:scope` | Post-map | Effort estimation derived from build site → wiki |
 | `/ck:make` | Build | Auto-parallel build with validation loop |
 | `/ck:check` | Inspect | Gap analysis + peer review against kits |
 | `/ck:config` | — | Show or update execution preset |
@@ -493,15 +544,20 @@ Settings live in two places:
 
 ## File Structure
 
+### Default (context directory)
+
 ```
 context/
 ├── kits/                     # Domain kits (persist across cycles)
 │   ├── kit-overview.md
 │   └── kit-{domain}.md
+├── specs/                    # Pre-sketch documentation
+│   ├── YYYY-MM-DD-spec-*.md
+│   └── YYYY-MM-DD-overview-*.md
 ├── designs/                  # Design system artifacts
 │   ├── DESIGN.md
 │   └── design-changelog.md
-├── sites/                    # Build sites (one per plan)
+├── plans/                    # Build sites (one per plan)
 │   └── build-site-*.md
 ├── impl/                     # Implementation tracking
 │   ├── impl-{domain}.md
@@ -510,6 +566,10 @@ context/
 │   └── loop-log.md
 └── refs/                     # Research briefs + raw findings
 ```
+
+### Wiki mode (opt-in with `--wiki`)
+
+With `--wiki`, eligible commands write to the sanetics wiki instead of `context/`. See [Wiki Mode](#wiki-mode) for the full project folder structure.
 
 ---
 

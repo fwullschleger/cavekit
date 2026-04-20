@@ -1,7 +1,7 @@
 ---
 name: ck-sketch
 description: "Write kits: decompose what you're building into domains with testable requirements"
-argument-hint: "[REFS_PATH | --from-code] [--filter PATTERN]"
+argument-hint: "[REFS_PATH | --from-code] [--filter PATTERN] [--wiki]"
 ---
 
 > **Note:** `/bp:draft`, `/ck:draft`, `/bp:sketch` are deprecated aliases. Use `/ck:sketch` instead.
@@ -11,6 +11,35 @@ argument-hint: "[REFS_PATH | --from-code] [--filter PATTERN]"
 This is the first phase of Cavekit. You are writing implementation-agnostic kits that define WHAT to build through collaborative design with the user.
 
 **HARD GATE:** Do NOT generate cavekit files until you have presented the design and the user has approved it. This applies to EVERY project regardless of perceived simplicity. A todo app, a config change, a single-domain project — all of them go through the design process. The design can be short for simple projects, but you MUST present it and get approval.
+
+## Workspace root resolution
+
+Before any substantive work, attempt to resolve the **workspace root**:
+
+1. Start from the current working directory.
+2. Walk upward through parent directories until you find one that contains all of these markers:
+   - A `sanetics-wiki/` directory
+   - A `setup.sh` file
+   - A `.claude/` directory
+3. If such an ancestor is found, remember its absolute path as `WORKSPACE_ROOT`. From the workspace root the wiki directory lives at `<WORKSPACE_ROOT>/sanetics-wiki/` and each sub-repo is a sibling (for example `<WORKSPACE_ROOT>/saneticscode/`, `<WORKSPACE_ROOT>/saniloop-aggregate/saniloop/`, `<WORKSPACE_ROOT>/claude-code/cavekit/`).
+4. If no ancestor contains all three markers, `WORKSPACE_ROOT` is **unset** — the command was invoked outside a sanetics-workspace. Fall back to plain CWD behavior (no workspace-aware features).
+
+Do not use environment variables or hardcoded absolute paths for workspace resolution. The workspace root is always discovered dynamically from the current working directory.
+
+## Context selection
+
+If `WORKSPACE_ROOT` is set, determine the **target sub-repo** before Step 0:
+
+1. **Detect invocation location:** compare CWD to `WORKSPACE_ROOT`.
+   - If CWD is inside a sub-repo (CWD is a descendant of `WORKSPACE_ROOT`), the enclosing sub-repo is the target automatically — do not prompt.
+   - If CWD equals `WORKSPACE_ROOT`, you are at the workspace level (handled in step 2).
+2. **Workspace-root invocation:** when CWD is the workspace root, check whether a target sub-repo was passed as an argument.
+   - If a sub-repo name was passed (e.g. `saneticscode`, `saniloop-aggregate/saniloop`), resolve it as `<WORKSPACE_ROOT>/<name>` and use it as the target.
+   - If no sub-repo argument was passed, list the sibling sub-repos under `WORKSPACE_ROOT` and prompt the user to pick one.
+   - After selection, operate as if invoked from within the chosen sub-repo — read its codebase and read/write its `context/` directory.
+3. **Cross-reference another sub-repo:** accept an optional reference to another sub-repo whose context should also be read. The reference is given by directory name relative to `WORKSPACE_ROOT` (e.g. `saneticscode`). When provided, resolve it as `<WORKSPACE_ROOT>/<reference>` and read `context/kits/`, `context/plans/`, `context/impl/` from **both** the target sub-repo and the referenced sub-repo.
+
+If `WORKSPACE_ROOT` is unset, skip this section: the target is simply the CWD.
 
 ## Step 0: Resolve Execution Profile
 
@@ -23,6 +52,17 @@ Before doing any substantive work:
 
 Keep the user Q&A in the parent thread. Use `EXPLORATION_MODEL` for helper exploration/research and `REASONING_MODEL` for cavekit generation and review.
 
+## Step 0b: Wiki Routing
+
+Parse `$ARGUMENTS` for the `--wiki` flag.
+
+- **If `--wiki` is NOT present** → **local mode**. Use `context/` paths under the target sub-repo (or CWD if `WORKSPACE_ROOT` is unset). Do not read any wiki routing document.
+- **If `--wiki` IS present** → read and follow the wiki routing document. Do not inline any routing procedure details here — the document is the source of truth for project discovery, PR sync, Grav front matter, and auto-commit.
+  - If `WORKSPACE_ROOT` is set, prefer `<WORKSPACE_ROOT>/.claude/wiki-routing.md` (accessible from any sub-repo via the `.claude` symlink as `.claude/wiki-routing.md`).
+  - Otherwise, fall back to `"${CLAUDE_PLUGIN_ROOT}/references/wiki-routing.md"`.
+
+Store the resolved mode and project path for use in later steps.
+
 ## Determine Mode
 
 Parse `$ARGUMENTS`:
@@ -32,7 +72,12 @@ Parse `$ARGUMENTS`:
 
 ## Step 1: Ensure Directories Exist
 
-Create these if missing (no separate init needed):
+**Wiki mode:** Create sub-project folders in the wiki project if missing:
+- `<wiki-project>/10.kits/` (with `chapter.md` — see wiki routing reference section 9)
+- `<wiki-project>/11.build-site/` (with `chapter.md`)
+- `<wiki-project>/12.impl/` (with `chapter.md`)
+
+**Local mode:** Create these if missing (no separate init needed):
 - `context/kits/`
 - `context/plans/`
 - `context/impl/`
@@ -43,12 +88,18 @@ Create these if missing (no separate init needed):
 
 Before asking ANY questions, understand what already exists:
 
-1. Check for existing `context/kits/` — are there prior kits?
+1. Check for existing kits — in `<wiki-project>/10.kits/` (wiki mode) or `context/kits/` (local mode)
 2. Read project docs, README, CLAUDE.md if present
 3. Check recent git commits to understand current momentum
 4. Scan the codebase structure (directory layout, key files)
 5. Check `context/refs/` for reference materials already provided
 6. Check for existing `DESIGN.md` at project root or in `context/designs/` — if present, this constrains visual design decisions for any UI-related kits
+7. **Read diagram guidance.** Before producing any diagrams later (in kits or cavekit-overview), read the diagram type catalog, selection criteria, Mermaid format conventions, and mandatory dependency-graph rule:
+   - If `WORKSPACE_ROOT` is set, read `<WORKSPACE_ROOT>/.claude/diagram-guidance.md` (accessible from any sub-repo via the `.claude` symlink as `.claude/diagram-guidance.md`).
+   - Otherwise, skip — use Mermaid conventions already described in this command.
+8. **(If `WORKSPACE_ROOT` is set)** Skim the full sanetics wiki for pages relevant to the target sub-repo and the current topic — all eight top-level sections under `<WORKSPACE_ROOT>/sanetics-wiki/pages/` (`01.home` through `08.projects`). See the "Wiki sections" table in the wiki routing reference (section 6) for each section's contents. Typical relevance: `02.domain` (models, vocabulary), `03.architecture` (ERDs, target state), `04.decisions` (ADRs that constrain design), `05.playbook` (coding conventions), `06.guides` (runbooks that may need updating), `07.resources` (shared primitives to reuse). Read selectively: scan titles and lead paragraphs, open in full only pages topically relevant to the current task. This wiki context **supplements** direct codebase exploration — it does not replace it.
+9. **Cross-referenced sub-repos:** if a cross-reference was provided in the Context selection step, also read `context/kits/`, `context/plans/`, and any `context/impl/impl-*.md` that look relevant from the referenced sub-repo.
+10. **(If `WORKSPACE_ROOT` is set)** Check the wiki projects section for existing specs, overviews, and plans whose project folder matches the target sub-repo's current branch — they inform the design conversation. Project folders are under `<WORKSPACE_ROOT>/sanetics-wiki/pages/08.projects/`; use the discovery heuristic from the wiki routing document (match by `branch` and `source` fields in each folder's `chapter.md`). If no matching project folder exists, proceed without error. Reading these docs is context only — writing output to the wiki is still gated by `--wiki`.
 
 This gives you grounding before engaging the user. Do NOT skip this even if the user has already described what they want.
 
@@ -310,7 +361,9 @@ Analyze the input and decompose into logical domains. Each domain should be:
 
 Do NOT perform the actual cavekit writing inline in the parent thread. Dispatch a `ck:drafter` subagent with `model: "{REASONING_MODEL}"` to write the files, then review the result in the parent thread.
 
-For each domain, create `context/kits/cavekit-{domain}.md`:
+For each domain, create the kit file:
+- **Wiki mode:** `<wiki-project>/10.kits/cavekit-{domain}.md` (with Grav front matter — see wiki routing reference section 4)
+- **Local mode:** `context/kits/cavekit-{domain}.md`
 
 ```markdown
 ---
@@ -389,7 +442,15 @@ last_edited: "{CURRENT_DATE_UTC}"
 | {domain} | {other domain} | {data flow / dependency / event} |
 
 ## Dependency Graph
-{Which domains must be implemented before others}
+
+Required: one Mermaid dependency graph (`graph TD` or `graph LR` — never prose) showing every domain/cavekit as a node and every dependency relationship as an edge. See `.claude/diagram-guidance.md` for diagram conventions.
+
+```mermaid
+graph TD
+    {domain-a} --> {domain-b}
+    {domain-a} --> {domain-c}
+    {domain-b} --> {domain-d}
+```
 ```
 
 ## Step 7: Validate
@@ -457,9 +518,13 @@ Agent tool (subagent_type: "ck:cavekit-reviewer", model: "{REASONING_MODEL}"):
 
 After the review loop passes, ask the user to review the written kits:
 
-> "Kits written and validated. Files are in `context/kits/`. Please review them and let me know if you want to make any changes before we move to the Architect phase."
+> "Kits written and validated. Files are in `{kits path}`. Please review them and let me know if you want to make any changes before we move to the Architect phase."
+
+(Use the resolved kits path — wiki project or `context/kits/`.)
 
 Wait for the user's response. If they request changes, make them and re-run Step 8. Only proceed once the user approves.
+
+**Auto-commit (wiki mode only):** After the user approves, follow the auto-commit procedure in wiki routing reference section 5. Stage the `10.kits/` folder (and `chapter.md` if a new project was created).
 
 ## Step 10: Report and Transition
 

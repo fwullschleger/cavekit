@@ -1,7 +1,7 @@
 ---
 name: ck-map
 description: "Generate a build site from kits — the task dependency graph that drives building"
-argument-hint: "[--filter PATTERN]"
+argument-hint: "[--filter PATTERN] [--wiki]"
 ---
 
 > **Note:** `/bp:architect`, `/ck:architect`, `/bp:map` are deprecated aliases. Use `/ck:map` instead.
@@ -11,6 +11,35 @@ argument-hint: "[--filter PATTERN]"
 This is the second phase of Cavekit. You read kits and generate a build site — a dependency-ordered task graph that tells the builder what to build and in what order.
 
 No domain plans. No file ownership. No time budgets. Just: tasks, what cavekit requirement they implement, and what blocks what.
+
+## Workspace root resolution
+
+Before any substantive work, attempt to resolve the **workspace root**:
+
+1. Start from the current working directory.
+2. Walk upward through parent directories until you find one that contains all of these markers:
+   - A `sanetics-wiki/` directory
+   - A `setup.sh` file
+   - A `.claude/` directory
+3. If such an ancestor is found, remember its absolute path as `WORKSPACE_ROOT`. From the workspace root the wiki directory lives at `<WORKSPACE_ROOT>/sanetics-wiki/` and each sub-repo is a sibling (for example `<WORKSPACE_ROOT>/saneticscode/`, `<WORKSPACE_ROOT>/saniloop-aggregate/saniloop/`, `<WORKSPACE_ROOT>/claude-code/cavekit/`).
+4. If no ancestor contains all three markers, `WORKSPACE_ROOT` is **unset** — the command was invoked outside a sanetics-workspace. Fall back to plain CWD behavior (no workspace-aware features).
+
+Do not use environment variables or hardcoded absolute paths for workspace resolution. The workspace root is always discovered dynamically from the current working directory.
+
+## Context selection
+
+If `WORKSPACE_ROOT` is set, determine the **target sub-repo** before Step 0:
+
+1. **Detect invocation location:** compare CWD to `WORKSPACE_ROOT`.
+   - If CWD is inside a sub-repo (CWD is a descendant of `WORKSPACE_ROOT`), the enclosing sub-repo is the target automatically — do not prompt.
+   - If CWD equals `WORKSPACE_ROOT`, you are at the workspace level (handled in step 2).
+2. **Workspace-root invocation:** when CWD is the workspace root, check whether a target sub-repo was passed as an argument.
+   - If a sub-repo name was passed (e.g. `saneticscode`, `saniloop-aggregate/saniloop`), resolve it as `<WORKSPACE_ROOT>/<name>` and use it as the target.
+   - If no sub-repo argument was passed, list the sibling sub-repos under `WORKSPACE_ROOT` and prompt the user to pick one.
+   - After selection, operate as if invoked from within the chosen sub-repo — read its codebase and read/write its `context/` directory.
+3. **Cross-reference another sub-repo:** accept an optional reference to another sub-repo whose context should also be read. The reference is given by directory name relative to `WORKSPACE_ROOT`. When provided, resolve it as `<WORKSPACE_ROOT>/<reference>` and read `context/kits/`, `context/plans/`, `context/impl/` from **both** the target sub-repo and the referenced sub-repo.
+
+If `WORKSPACE_ROOT` is unset, skip this section: the target is simply the CWD.
 
 ## Step 0: Resolve Execution Profile
 
@@ -22,17 +51,28 @@ Before generating the site:
 
 Do NOT rely on the agent frontmatter model. Dispatch the actual site-generation work to a `ck:map` subagent with `model: "{REASONING_MODEL}"`.
 
+## Step 0b: Wiki Routing
+
+Parse `$ARGUMENTS` for the `--wiki` flag.
+
+- **If `--wiki` is NOT present** → **local mode**. Use `context/` paths under the target sub-repo (or CWD if `WORKSPACE_ROOT` is unset). Do not read any wiki routing document.
+- **If `--wiki` IS present** → read and follow the wiki routing document. Do not inline any routing procedure details here — the document is the source of truth for project discovery, PR sync, Grav front matter, and auto-commit.
+  - If `WORKSPACE_ROOT` is set, prefer `<WORKSPACE_ROOT>/.claude/wiki-routing.md` (accessible from any sub-repo via the `.claude` symlink as `.claude/wiki-routing.md`).
+  - Otherwise, fall back to `"${CLAUDE_PLUGIN_ROOT}/references/wiki-routing.md"`.
+
+Resolve paths: kits at `<wiki-project>/10.kits/` (wiki) or `context/kits/` (local), build site at `<wiki-project>/11.build-site/` (wiki) or `context/plans/` (local).
+
 ## Step 1: Validate Kits Exist
 
-Check `context/kits/` for cavekit files. If none found, tell the user:
+Check the resolved kits path for cavekit files. If none found, tell the user:
 > No kits found. Run `/ck:sketch` first.
 
 If `--filter` is set, only include kits matching the filter pattern.
 
 ## Step 2: Read All Kits
 
-1. Read `context/kits/cavekit-overview.md` if it exists (for dependency graph)
-2. Read all `context/kits/cavekit-*.md` files (apply filter if set)
+1. Read `cavekit-overview.md` from the resolved kits path if it exists (for dependency graph)
+2. Read all `cavekit-*.md` files from the resolved kits path (apply filter if set)
 3. Catalog every requirement (R-numbered) with its acceptance criteria and dependencies
 4. If `DESIGN.md` exists at project root, read it — note all design tokens and component patterns for use when decomposing UI requirements into tasks
 
@@ -62,11 +102,13 @@ Organize tasks into tiers:
 
 ## Step 5: Write the Site
 
-Create the `context/plans/` directory if it doesn't exist.
+Create the output directory if it doesn't exist:
+- **Wiki mode:** `<wiki-project>/11.build-site/` (with `chapter.md` if missing — see wiki routing reference section 9)
+- **Local mode:** `context/plans/`
 
 Dispatch a `ck:map` subagent with `model: "{REASONING_MODEL}"` to produce the build-site contents from the kits and dependencies you cataloged above, then write the returned site to disk.
 
-Write `context/plans/build-site.md`:
+Write the build site to the resolved path (`<wiki-project>/11.build-site/build-site.md` or `context/plans/build-site.md`):
 
 ```markdown
 ---
@@ -170,6 +212,10 @@ Rules for the graph:
 Run `/ck:make` to start implementation (auto-parallelizes independent tasks).
 Run `/ck:make --peer-review` to add Codex review.
 ```
+
+### Auto-Commit (wiki mode only)
+
+After writing the build site, follow the auto-commit procedure in wiki routing reference section 5. Stage the `11.build-site/` folder (and `chapter.md` if a new project was created).
 
 ### Rules
 

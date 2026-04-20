@@ -2,7 +2,6 @@
 name: task-builder
 description: Implements a single task from a build site. Dispatched by /ck:make for parallel execution.
 model: opus
-tools: [All tools]
 ---
 
 You are a task builder for Cavekit. You implement exactly ONE task, validate it, commit it, and stop.

@@ -25,14 +25,21 @@ Use `REASONING_MODEL` explicitly for the delegated surveyor and inspector work b
 
 If `CAVEMAN_ACTIVE` is `true`, your own output (status updates, summaries, reasoning) should use caveman-speak: drop articles, filler, pleasantries — keep technical terms exact and code blocks unchanged. The structured report tables (coverage matrix, findings with P0/P1/P2/P3) stay in normal format. Inject `CAVEMAN MODE: ON` into ck:surveyor and ck:inspector subagent prompts so their status reports are also compressed.
 
+## Step 0b: Resolve Paths
+
+All paths are local:
+- Kits: `context/kits/`
+- Build site: `context/plans/`
+- Impl tracking: `context/impl/`
+
 ## Step 1: Gather Context
 
 Read these files to understand what happened:
 
-1. **Site/Plan** — find in `context/plans/` or `context/sites/` (match `*site*`, `*plan*`, or `*frontier*`, exclude `*overview*`; apply `--filter` from `$ARGUMENTS` if set)
-2. **Kits** — all `context/kits/cavekit-*.md` files (apply filter)
-3. **Impl tracking** — all `context/impl/impl-*.md` files
-4. **Loop log** — `context/impl/loop-log.md`
+1. **Site/Plan** — find in the resolved build site path (match `*site*`, `*plan*`, or `*frontier*`, exclude `*overview*`; apply `--filter` from `$ARGUMENTS` if set)
+2. **Kits** — all `cavekit-*.md` files from the resolved kits path (apply filter)
+3. **Impl tracking** — all `impl-*.md` files from the resolved impl path
+4. **Loop log** — `loop-log.md` from the resolved impl path
 5. **Git history** — run `git log --oneline -30` to see recent commits from the loop
 6. **Git diff** — run `git diff main...HEAD` (or appropriate base branch) to see all code changes
 7. **Design system** — read `DESIGN.md` at project root if it exists (for design compliance checking in Steps 2-3)
@@ -234,7 +241,7 @@ When modifying a cavekit file:
 
 If new requirements were added to kits, add corresponding tasks to the site:
 
-1. Read the build site (check `context/plans/` first, then `context/sites/`)
+1. Read the build site from the resolved build site path
 2. For each new requirement, create task(s) with T-numbers continuing from the last existing task
 3. Place tasks in the appropriate tier based on dependencies
 4. Update the `last_edited` date in frontmatter
@@ -300,7 +307,8 @@ After revision, tell the user:
 | T-{n} | {title} | {tier} | F-{n} |
 
 ### Findings Logged
-{n} findings written to context/impl/impl-review-findings.md
+{n} findings written to impl-review-findings.md
 
 Ready for next cycle: `/ck:make`
 ```
+

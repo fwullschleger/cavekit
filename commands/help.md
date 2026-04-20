@@ -11,8 +11,9 @@ description: Show Cavekit commands and usage
 
 ```
 /ck:init        →  bootstrap context hierarchy (optional, /ck:sketch does this too)
+/ck:ingest      →  pull external refs (ClickUp, extensible) into context/refs/
 /ck:design      →  create or update DESIGN.md (the LOOK) — import, extract, or design interactively
-/ck:research    →  deep multi-agent research (standalone, or integrated into /ck:sketch)
+/ck:research    →  deep multi-agent research (codebase + web + sanetics wiki)
 /ck:sketch       →  write kits (the WHAT) — offers research if warranted, references DESIGN.md
 /ck:map   →  generate site (the ORDER) — includes design refs for UI tasks
 /ck:make       →  ralph loop (the BUILD) — task builders read DESIGN.md for UI work
@@ -66,13 +67,30 @@ Creates the full context hierarchy for a Cavekit project. Idempotent — only cr
 /ck:research "build a Verse compiler targeting WASM"           # standard depth
 /ck:research "add real-time collab" --depth deep               # exhaustive
 /ck:research "refactor auth layer" --depth quick               # fast scan
-/ck:research "new React dashboard" --web-only                  # greenfield, skip codebase
-/ck:research "optimize DB queries" --codebase-only             # air-gapped, skip web
+/ck:research "new React dashboard" --web-only                  # only web, skip codebase + wiki
+/ck:research "optimize DB queries" --codebase-only             # only codebase, skip web + wiki
+/ck:research "dispensing override rules" --wiki-only           # only sanetics wiki precedent
+/ck:research "auth rewrite" --skip-wiki                        # codebase + web, skip wiki
 ```
 
-Runs parallel multi-agent research (codebase exploration + web search) and produces a research brief in `context/refs/research-brief-{topic}.md`. Dispatches 2-8 agents depending on project size and depth. Two-pass synthesis cross-validates findings and resolves contradictions.
+Runs parallel multi-agent research across three sources — **codebase**, **web**, and the **sanetics wiki** (domain, architecture, decisions, playbook, prior projects). Produces a research brief in `context/refs/research-brief-{topic}.md`. Dispatches up to ~12 agents depending on project size, depth, and source selection. Two-pass synthesis cross-validates findings, resolves contradictions, and flags where external best practices conflict with internal precedent.
+
+The wiki wave is automatically available when the command runs inside a sanetics-workspace (detected by ancestor with `sanetics-wiki/`, `setup.sh`, `.claude/`). Outside a workspace it's silently skipped — no error.
 
 Also integrated into `/ck:sketch` — when the draft phase detects a project that would benefit from research, it offers to run the pipeline inline before design Q&A.
+
+### `/ck:ingest` — Pull External Refs
+
+```bash
+/ck:ingest clickup 86a12b3cd                         # pull a ClickUp task into context/refs/
+/ck:ingest clickup https://app.clickup.com/t/abc     # same, via URL
+/ck:ingest clickup 86a12b3cd --as auth-requirements  # custom slug
+/ck:ingest clickup 86a12b3cd --dry-run               # preview, don't write
+```
+
+Pluggable acquisition command. Pulls reference material from external systems into `context/refs/` as normalized markdown. First-class source: **ClickUp** (task, comments, threaded replies, subtasks, linked docs). Designed for easy extension — adding new sources (wiki pages, URLs, local files) is a table entry plus a handler subsection, no rewrite.
+
+Ingested refs feed `/ck:spec`, `/ck:sketch`, and `/ck:research`. Does not auto-commit — refs are working material, not deliverables.
 
 ### `/ck:design` — Create or Update DESIGN.md
 
