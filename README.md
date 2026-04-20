@@ -34,17 +34,20 @@ That's the whole pitch.
 
 ## install
 
-One line, via the `skills` CLI — installs commands and skills together:
+One line, via the `skills` CLI:
 
 ```bash
 npx skills add JuliusBrussee/cavekit
 ```
 
-Drops `/ck:spec`, `/ck:build`, `/ck:check` into `~/.claude/commands/` and
-the `caveman` + `backprop` skills into `~/.claude/skills/`. Claude Code
+Installs five skills into `~/.claude/skills/`: `spec`, `build`, `check`
+(the workflow) plus `caveman` and `backprop` (the utilities). Claude
+activates each when its trigger context matches — e.g. "write a spec
+for…" invokes `spec`, "build the next task" invokes `build`. Claude Code
 picks them up on next launch.
 
-Or via the Claude Code marketplace:
+Or via the Claude Code marketplace (also adds `/ck:spec`, `/ck:build`,
+`/ck:check` slash commands):
 
 ```bash
 /plugin marketplace add juliusbrussee/cavekit
@@ -66,8 +69,11 @@ See [`FORMAT.md`](./FORMAT.md). Fixed sections: §G goal, §C constraints,
 
 ```
 FORMAT.md             spec schema + caveman encoding rules
-commands/             three markdown command prompts
-skills/caveman        encoding skill
+commands/             three slash-command entry points (/ck:spec, /ck:build, /ck:check)
+skills/spec           spec mutator (mirrors commands/spec.md as a skill)
+skills/build          plan-execute skill (mirrors commands/build.md)
+skills/check          drift report skill (mirrors commands/check.md)
+skills/caveman        encoding utility
 skills/backprop       bug → spec protocol (six steps)
 ```
 
